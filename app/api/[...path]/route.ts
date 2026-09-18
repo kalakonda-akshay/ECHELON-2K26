@@ -7,6 +7,8 @@ import {
   resetNativeScenario,
   getNativeDiagnosis,
   getNativeRecoveryOptions,
+  getNativeRecoveryRecommendation,
+  getNativeRecoveryVerify,
   simulateNativeRecovery,
   executeNativeRecovery,
   verifyNativeRecovery,
@@ -16,6 +18,9 @@ import {
   getNativeAdaptiveInvestigation,
   getNativeSimilarIncidents,
   getNativeWhyNow,
+  getNativeWhatChanged,
+  getNativeServiceCriticality,
+  getNativeFeedbackStats,
   getNativeProjects,
   getNativeProjectDetails,
   handleNativeProjectUpload,
@@ -134,9 +139,19 @@ export async function GET(req: NextRequest, { params }: { params: { path: string
     case "diagnosis":
       return NextResponse.json(getNativeDiagnosis());
 
+    case "root-cause":
+      return NextResponse.json(getNativeDiagnosis());
+
     case "investigation":
     case "investigation/adaptive":
       return NextResponse.json(getNativeAdaptiveInvestigation());
+
+    case "investigation/why-now":
+    case "why-now":
+      return NextResponse.json(getNativeWhyNow());
+
+    case "investigation/what-changed":
+      return NextResponse.json(getNativeWhatChanged());
 
     case "blast-radius":
       return NextResponse.json(getNativeBlastRadius());
@@ -147,26 +162,37 @@ export async function GET(req: NextRequest, { params }: { params: { path: string
     case "causal-graph":
       return NextResponse.json(getNativeCausalGraph());
 
-    case "why-now":
-      return NextResponse.json(getNativeWhyNow());
-
     case "memory/similar":
       return NextResponse.json(getNativeSimilarIncidents());
 
     case "recovery/options":
       return NextResponse.json(getNativeRecoveryOptions());
 
+    case "recovery/recommendation":
+      return NextResponse.json(getNativeRecoveryRecommendation());
+
+    case "recovery/verify":
+      return NextResponse.json(getNativeRecoveryVerify());
+
+    case "services/criticality":
+      return NextResponse.json(getNativeServiceCriticality());
+
+    case "feedback/stats":
+      return NextResponse.json(getNativeFeedbackStats());
+
+    case "incidents":
+    case "history":
+      return NextResponse.json(getNativeSimilarIncidents());
+
     case "projects":
       return NextResponse.json(getNativeProjects());
 
     case "deployments":
       return NextResponse.json([
-        { service: "payment-service", version: "v2.8.2", status: "STABLE", timestamp: new Date(Date.now() - 3600000).toISOString() },
-        { service: "order-service", version: "v2.8.1", status: "STABLE", timestamp: new Date(Date.now() - 7200000).toISOString() }
+        { id: "dep-001", service: "payment-service", version: "v2.8.2", status: "STABLE", commit_id: "a8f3b9c", author: "devon.v@acme.corp", deployed_at: new Date(Date.now() - 3600000).toISOString(), description: "Payment gateway connector overhaul" },
+        { id: "dep-002", service: "order-service", version: "v2.8.1", status: "STABLE", commit_id: "b3f9901", author: "marcus.k@acme.corp", deployed_at: new Date(Date.now() - 7200000).toISOString(), description: "Checkout idempotency header support" },
+        { id: "dep-003", service: "api-gateway", version: "v1.8.4", status: "STABLE", commit_id: "e7a102f", author: "sarah.chen@acme.corp", deployed_at: new Date(Date.now() - 10800000).toISOString(), description: "Rate-limiting tuning and CORS policy update" }
       ]);
-
-    case "history":
-      return NextResponse.json(getNativeSimilarIncidents());
 
     default: {
       // Project specific routes: projects/:id or projects/:id/repair/...
@@ -179,6 +205,16 @@ export async function GET(req: NextRequest, { params }: { params: { path: string
           return details ? NextResponse.json(details) : NextResponse.json({ error: "Project not found" }, { status: 404 });
         }
 
+        if (parts[2] === "topology") {
+          const details = getNativeProjectDetails(projectId) as any;
+          return NextResponse.json(details?.observability_readiness || {});
+        }
+
+        if (parts[2] === "readiness") {
+          const details = getNativeProjectDetails(projectId) as any;
+          return NextResponse.json(details?.observability_readiness || {});
+        }
+
         if (parts[2] === "repaired" && parts[3] === "status") {
           const zipInfo = getNativeRepairedZip(projectId);
           return NextResponse.json({
@@ -188,7 +224,7 @@ export async function GET(req: NextRequest, { params }: { params: { path: string
           });
         }
 
-        if (parts[2] === "repaired" && parts[3] === "download") {
+        if ((parts[2] === "repaired" || parts[2] === "repair") && parts[3] === "download") {
           const zipInfo = getNativeRepairedZip(projectId);
           if (!zipInfo) {
             return NextResponse.json({ detail: "Complete validation before export." }, { status: 400 });
@@ -234,14 +270,22 @@ export async function POST(req: NextRequest, { params }: { params: { path: strin
   // 2. Native Engine Fallback
 
   switch (subpath) {
-    case "failure/inject": {
+    case "failure/inject":
+    case "demo/inject": {
       const scenario = body.scenario || "DATABASE_FAILURE";
       return NextResponse.json(injectNativeScenario(scenario));
     }
 
     case "scenarios/reset":
     case "reset":
+    case "demo/reset":
       return NextResponse.json(resetNativeScenario());
+
+    case "telemetry/ingest":
+      return NextResponse.json({ status: "INGESTED", timestamp: new Date().toISOString() });
+
+    case "telemetry/mode":
+      return NextResponse.json({ status: "SUCCESS", data_mode: body.mode || "DEMO" });
 
     case "investigation/acquire-evidence":
       return NextResponse.json({
@@ -254,17 +298,19 @@ export async function POST(req: NextRequest, { params }: { params: { path: strin
       return NextResponse.json(simulateNativeRecovery(body.action_id || "scale_connection_pool"));
 
     case "recovery/execute":
+    case "recovery/approve":
       return NextResponse.json(executeNativeRecovery(body.action_id || "scale_connection_pool"));
 
     case "recovery/verify":
       return NextResponse.json(verifyNativeRecovery());
 
     case "feedback":
-      return NextResponse.json({ status: "RECORDED", message: "Engineer feedback stored in incident memory." });
+      return NextResponse.json({ status: "RECORDED", feedback_id: `fb-${Date.now().toString(36)}`, message: "Engineer feedback stored in incident memory." });
 
-    case "copilot/ask": {
+    case "copilot/ask":
+    case "copilot/query": {
       const text = await generateNativeCopilotResponse(body.question || "");
-      return NextResponse.json({ answer: text });
+      return NextResponse.json({ answer: text, question: body.question, confidence: 0.92, model_source: "Native TraceRoute AI Engine" });
     }
 
     case "copilot/chat/stream": {
@@ -302,8 +348,9 @@ export async function POST(req: NextRequest, { params }: { params: { path: strin
     }
 
     case "projects/upload": {
+      // Use the rawFormData already buffered above — do NOT call req.formData() again
       try {
-        const formData = await req.formData();
+        const formData = rawFormData || new FormData();
         const result = await handleNativeProjectUpload(formData);
         return NextResponse.json(result);
       } catch (err: any) {
@@ -323,6 +370,14 @@ export async function POST(req: NextRequest, { params }: { params: { path: strin
 
         if (parts[2] === "telemetry") {
           return NextResponse.json({ status: "INGESTED", count: 1 });
+        }
+
+        if (parts[2] === "repair" && parts[3] === "apply-patch") {
+          return NextResponse.json({ status: "APPLIED", issue_id: body.issue_id });
+        }
+
+        if (parts[2] === "repair" && parts[3] === "rollback") {
+          return NextResponse.json({ status: "ROLLED_BACK", issue_id: body.issue_id });
         }
       }
 

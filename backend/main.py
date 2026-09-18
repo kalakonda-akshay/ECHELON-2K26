@@ -495,7 +495,8 @@ def get_similar_incidents():
     tick = simulator.tick()
     diag = root_cause_engine.analyze(tick["current_metrics"], tick["latest_trace"], scenario)
     initiator = diag.get("initiating_service")
-    symptom = diag.get("incident", {}).get("symptom", "502 Bad Gateway")
+    inc = diag.get("incident") or {}
+    symptom = inc.get("symptom", "502 Bad Gateway")
     return incident_memory_engine.find_similar(scenario, symptom, initiator)
 
 @app.post("/api/feedback")

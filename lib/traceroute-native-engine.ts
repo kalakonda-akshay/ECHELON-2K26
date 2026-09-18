@@ -590,11 +590,29 @@ export function getNativeSimilarIncidents() {
 
 export function getNativeWhyNow() {
   return {
+    has_incident: Boolean(activeScenario),
+    headline: activeScenario
+      ? "Deployment 'config-v2.8.1' correlated with connection pool exhaustion 4 min prior to alert"
+      : "No temporal anomaly detected. System operating within nominal SLOs.",
     incident_id: activeIncidentId || "NOMINAL",
     trigger_event: activeScenario
       ? "Recent configuration deployment 'config-v2.8.1' pushed 4 minutes prior to alert"
       : "Nominal system operation; no trigger events detected",
     time_delta_seconds: 240,
+    primary_trigger: activeScenario
+      ? "Configuration change reduced payment-db max_connections from 150 to 20"
+      : null,
+    timeline: activeScenario ? [
+      { timestamp: new Date(Date.now() - 480000).toISOString(), event: "Deploy 'payment-db/config-v2.8.1': max_connections=20", type: "CONFIG_CHANGE" },
+      { timestamp: new Date(Date.now() - 240000).toISOString(), event: "payment-db connection pool reached 95% utilization", type: "METRIC_SPIKE" },
+      { timestamp: new Date(Date.now() - 120000).toISOString(), event: "payment-service HTTP 504 rate exceeded 30%", type: "ERROR_SPIKE" },
+      { timestamp: new Date(Date.now() - 60000).toISOString(), event: "api-gateway circuit breaker tripped — 502 Bad Gateway", type: "INCIDENT_OPEN" }
+    ] : [],
+    contributing_conditions: activeScenario ? [
+      "Payment-db max_connections reduced to 20 (was 150) by recent deploy",
+      "Order processing peak — 190 RPS above baseline",
+      "No circuit breaker configured on payment-service → payment-db path"
+    ] : [],
     correlated_changes: [
       {
         service: "payment-db",
@@ -602,6 +620,110 @@ export function getNativeWhyNow() {
         author: "deploy-bot",
         commit: "a81d4e",
         description: "Set pool_size=20 in production configuration"
+      }
+    ]
+  };
+}
+
+export function getNativeWhatChanged() {
+  const state = getNativeSystemState();
+  const baseLatency: Record<string, number> = {
+    "api-gateway": 18, "order-service": 24, "payment-service": 32,
+    "inventory-service": 15, "payment-db": 4, "stock-db": 3
+  };
+  return {
+    has_incident: Boolean(activeScenario),
+    largest_deviation: activeScenario ? "payment-db latency +20,000%% (4ms → 840ms)" : "None — all services within 5% of baseline",
+    metrics_comparison: Object.entries(state.current_metrics).map(([id, m]) => ({
+      service: id,
+      metric: "latency_ms",
+      baseline: baseLatency[id] || 20,
+      current: m.latency,
+      delta_pct: Math.round(((m.latency - (baseLatency[id] || 20)) / (baseLatency[id] || 20)) * 100),
+      status: m.status
+    }))
+  };
+}
+
+export function getNativeRecoveryRecommendation() {
+  const diag = getNativeDiagnosis();
+  return {
+    action_id: "scale_connection_pool",
+    title: activeScenario === "DATABASE_FAILURE"
+      ? "Flush HikariCP Connection Pool & Scale max_connections to 150"
+      : "System Healthy — No Recovery Required",
+    description: activeScenario
+      ? "Terminate idle backend connections and increase PostgreSQL max_connections from 20 to 150 to immediately relieve pool exhaustion."
+      : "All services are operating within nominal SLOs. No recovery action required at this time.",
+    risk_level: activeScenario ? "LOW" : "NONE",
+    predicted_impact: activeScenario
+      ? { latency_reduction_pct: 88.5, error_rate_reduction_pct: 96.0, mttr_seconds: 45 }
+      : null,
+    requires_approval: true,
+    safety_score: 98,
+    root_cause_service: diag.root_cause_service,
+    pre_flight_checks: [
+      "Memory headroom verified on payment-db host",
+      "PostgreSQL replica lag within acceptable bounds",
+      "No in-flight transactions at risk"
+    ]
+  };
+}
+
+export function getNativeRecoveryVerify() {
+  return {
+    verified: !activeScenario,
+    verdict: activeScenario ? "RECOVERY PENDING" : "RECOVERY VERIFIED",
+    badge_color: activeScenario ? "yellow" : "green",
+    timestamp: new Date().toISOString(),
+    summary: activeScenario
+      ? "Active incident ongoing. Execute SafeOps recovery action before verification."
+      : "All health probes passing. Cluster has returned to nominal SLOs. Recovery confirmed.",
+    checks: [
+      { name: "payment-db Pool Usage", status: activeScenario ? "FAIL" : "PASS", value: activeScenario ? "98.4%" : "22.1%" },
+      { name: "payment-service Error Rate", status: activeScenario ? "FAIL" : "PASS", value: activeScenario ? "38.2%" : "0.0%" },
+      { name: "api-gateway 502 Rate", status: activeScenario ? "FAIL" : "PASS", value: activeScenario ? "18.0%" : "0.0%" },
+      { name: "Cluster P95 Latency", status: activeScenario ? "WARN" : "PASS", value: activeScenario ? "1840ms" : "45ms" }
+    ]
+  };
+}
+
+export function getNativeServiceCriticality(): Record<string, any> {
+  return {
+    "api-gateway": { criticality_tier: "CRITICAL", downstream_dependents: [], upstream_dependents: ["order-service"], blast_radius_score: 100 },
+    "order-service": { criticality_tier: "CRITICAL", downstream_dependents: ["api-gateway"], upstream_dependents: ["payment-service", "inventory-service"], blast_radius_score: 88 },
+    "payment-service": { criticality_tier: "CRITICAL", downstream_dependents: ["order-service"], upstream_dependents: ["payment-db"], blast_radius_score: 92 },
+    "inventory-service": { criticality_tier: "HIGH", downstream_dependents: ["order-service"], upstream_dependents: ["stock-db"], blast_radius_score: 61 },
+    "payment-db": { criticality_tier: "CRITICAL", downstream_dependents: ["payment-service"], upstream_dependents: [], blast_radius_score: 95 },
+    "stock-db": { criticality_tier: "MEDIUM", downstream_dependents: ["inventory-service"], upstream_dependents: [], blast_radius_score: 40 }
+  };
+}
+
+export function getNativeFeedbackStats() {
+  return {
+    total_incidents_recorded: 2,
+    total_evaluations: 14,
+    diagnosis_accuracy_pct: 96.4,
+    recovery_success_rate_pct: 98.2,
+    mean_time_to_detect_s: 1.2,
+    mean_time_to_recover_s: 4.8,
+    engineer_satisfaction_pct: 95.0,
+    recent_evaluations: [
+      {
+        incident_id: "INC-8819",
+        diagnosis_accurate: "YES",
+        recovery_effective: "YES",
+        engineer_notes: "Identified HikariCP pool exhaustion before Gateway tripped. Verified recovery was smooth.",
+        engineer_email: "marcus.k@acme.corp",
+        created_at: "2026-09-17T11:55:00Z"
+      },
+      {
+        incident_id: "INC-8821",
+        diagnosis_accurate: "YES",
+        recovery_effective: "YES",
+        engineer_notes: "Correctly attributed GC pause to payment-service. Rolling restart fixed it instantly.",
+        engineer_email: "sarah.chen@acme.corp",
+        created_at: "2026-09-17T21:25:00Z"
       }
     ]
   };
