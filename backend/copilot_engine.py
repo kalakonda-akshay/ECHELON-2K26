@@ -57,12 +57,13 @@ class TraceRouteCopilot:
 
         repair_info = ""
         if repair_issues:
+            issue_list = repair_issues.get("issues", []) if isinstance(repair_issues, dict) else (repair_issues if isinstance(repair_issues, list) else [])
             issues_summary = "\n".join([
                 f"  * [{i.get('level')}] {i.get('title')} ({i.get('file_path')}:{i.get('line_number', 1)}) - {i.get('rationale')}"
-                for i in repair_issues[:6]
+                for i in issue_list[:6]
             ])
-            health_score = repair_health.get('health_score', 100) if repair_health else 100
-            readiness = repair_health.get('build_readiness', 'UNKNOWN') if repair_health else 'UNKNOWN'
+            health_score = repair_health.get('health_score', 100) if isinstance(repair_health, dict) else 100
+            readiness = repair_health.get('build_readiness', 'UNKNOWN') if isinstance(repair_health, dict) else 'UNKNOWN'
             repair_info = (
                 f"\nProject Repair Lab Context:\n"
                 f"- Health Score: {health_score}/100 | Build Readiness: {readiness}\n"

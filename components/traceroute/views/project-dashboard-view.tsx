@@ -610,7 +610,7 @@ export function ProjectDashboardView({
                 <span>TraceRoute Ingestion Endpoint</span>
               </div>
               <p className="text-sky-300/80">
-                POST telemetry payloads to: <code>http://127.0.0.1:8000/api/projects/{project.id}/telemetry</code>
+                POST telemetry payloads to: <code>{typeof window !== "undefined" ? window.location.origin : "http://127.0.0.1:8000"}/api/projects/{project.id}/telemetry</code>
               </p>
             </div>
           </div>

@@ -33,11 +33,9 @@ import {
 const getApiBase = () => {
   if (typeof window !== "undefined") {
     if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL;
-    if (window.location.protocol === "https:") {
-      return "/api";
-    }
+    return "/api";
   }
-  return process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000/api";
+  return process.env.NEXT_PUBLIC_API_URL || process.env.BACKEND_URL || "http://127.0.0.1:8000/api";
 };
 
 const API_BASE = getApiBase();
@@ -400,7 +398,7 @@ export const TraceRouteAPI = {
             { step_number: 2, title: "Initialize TraceRoute Provider", description: "Hook into FastAPI/Flask/Express.", command: "python -m traceroute_instrumentation" }
           ],
           snippets: [],
-          collector_endpoint: "http://127.0.0.1:8000/api/telemetry/ingest",
+          collector_endpoint: typeof window !== "undefined" ? `${window.location.origin}/api/telemetry/ingest` : "http://127.0.0.1:8000/api/telemetry/ingest",
           estimated_setup_minutes: 3
         }
       };

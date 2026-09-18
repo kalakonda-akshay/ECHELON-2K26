@@ -14,7 +14,7 @@ const isPublicRoute = createRouteMatcher([
   "/lookup(.*)",
   "/sign-in(.*)",
   "/sign-up(.*)",
-  "/api/webhooks(.*)",
+  "/api(.*)",
 ]);
 
 export default function middleware(request: NextRequest, event: any) {

@@ -425,7 +425,7 @@ export async function analyzeZipInBrowser(file: File): Promise<ProjectDetails> {
         description: "Python OpenTelemetry instrumentation hook"
       }
     ],
-    collector_endpoint: "http://127.0.0.1:8000/api/telemetry/ingest",
+    collector_endpoint: typeof window !== "undefined" ? `${window.location.origin}/api/telemetry/ingest` : "http://127.0.0.1:8000/api/telemetry/ingest",
     estimated_setup_minutes: 3
   };
 
