@@ -337,7 +337,7 @@ export function CopilotView({ status, diagnosis, onNavigate }: CopilotViewProps)
   };
 
   const renderTextLines = (text: string) => {
-    const lines = text.split("\n");
+    const lines = (text || "").split("\n");
     return lines.map((line, idx) => {
       // Header 4
       if (line.startsWith("#### ")) {
@@ -381,7 +381,7 @@ export function CopilotView({ status, diagnosis, onNavigate }: CopilotViewProps)
   };
 
   const renderInlineStyles = (str: string) => {
-    const parts = str.split(/(\*\*.*?\*\*|`.*?`)/g);
+    const parts = (str || "").split(/(\*\*.*?\*\*|`.*?`)/g);
     return parts.map((part, i) => {
       if (part.startsWith("**") && part.endsWith("**")) {
         return <strong key={i} className="text-white font-semibold">{part.slice(2, -2)}</strong>;

@@ -298,14 +298,26 @@ export function getNativeSystemState() {
   };
 }
 
+const NODE_COORDINATES: Record<string, { x: number; y: number }> = {
+  "api-gateway": { x: 400, y: 70 },
+  "order-service": { x: 400, y: 190 },
+  "payment-service": { x: 230, y: 330 },
+  "inventory-service": { x: 570, y: 330 },
+  "payment-db": { x: 230, y: 480 },
+  "stock-db": { x: 570, y: 480 }
+};
+
 export function getNativeTopology() {
   const state = getNativeSystemState();
   const nodes = Object.entries(SERVICE_CONFIG).map(([id, cfg]) => {
     const m = state.current_metrics[id];
+    const coords = NODE_COORDINATES[id] || { x: 400, y: 200 };
     return {
       id,
       name: cfg.name,
       type: cfg.type,
+      x: coords.x,
+      y: coords.y,
       status: m ? m.status : "HEALTHY",
       latency: m ? m.latency : cfg.base_latency,
       error_rate: m ? m.error_rate : 0.0,
@@ -324,6 +336,8 @@ export function getNativeTopology() {
       edges.push({
         source: src,
         target: tgt,
+        protocol: tgt.includes("db") ? "TCP / PostgreSQL" : "gRPC / HTTP",
+        latency_ms: tgtMetric?.latency || 20,
         status: isDegraded ? "DEGRADED" : "HEALTHY",
         call_rate: srcMetric?.rps || 100,
         avg_latency: tgtMetric?.latency || 20

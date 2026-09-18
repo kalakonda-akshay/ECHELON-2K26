@@ -94,9 +94,17 @@ export function TopologyView({ topology, telemetry, activeScenario }: TopologyVi
 
               const strokeColor = isCritical ? "#f43f5e" : isWarning ? "#fbbf24" : "#10b981";
 
+              const sx = source.x ?? 400;
+              const sy = source.y ?? 100;
+              const tx = target.x ?? 400;
+              const ty = target.y ?? 300;
+
               // Draw curved path
-              const midY = (source.y + target.y) / 2;
-              const pathD = `M ${source.x} ${source.y + 25} C ${source.x} ${midY}, ${target.x} ${midY}, ${target.x} ${target.y - 25}`;
+              const midY = (sy + ty) / 2;
+              const pathD = `M ${sx} ${sy + 25} C ${sx} ${midY}, ${tx} ${midY}, ${tx} ${ty - 25}`;
+
+              const protocolName = (edge.protocol ? String(edge.protocol).split(" ")[0] : "HTTP");
+              const latencyVal = edge.latency_ms ?? (edge as any).avg_latency ?? 20;
 
               return (
                 <g key={idx}>
@@ -118,14 +126,14 @@ export function TopologyView({ topology, telemetry, activeScenario }: TopologyVi
 
                   {/* Edge Protocol Tag */}
                   <text
-                    x={(source.x + target.x) / 2 + (idx % 2 === 0 ? 12 : -12)}
+                    x={(sx + tx) / 2 + (idx % 2 === 0 ? 12 : -12)}
                     y={midY}
                     fill="#94a3b8"
                     fontSize="9"
                     fontFamily="monospace"
                     textAnchor="middle"
                   >
-                    {edge.protocol.split(" ")[0]} ({edge.latency_ms}ms)
+                    {protocolName} ({latencyVal}ms)
                   </text>
                 </g>
               );
