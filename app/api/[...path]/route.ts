@@ -42,11 +42,16 @@ async function tryProxyToBackend(
     if (subpath === "copilot/ask") targetSubpath = "copilot/query";
 
     const targetUrl = `${BACKEND_URL}/api/${targetSubpath}`;
+    const isHeavy = subpath.includes("upload") || subpath.includes("repair") || subpath.includes("make-it-work") || subpath.includes("copilot");
+    const timeoutMs = isHeavy ? 20000 : 2500;
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 1200);
+    const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
     const headers = new Headers(req.headers);
     headers.delete("host");
+    if (rawBody instanceof FormData) {
+      headers.delete("content-type");
+    }
 
     const fetchOptions: RequestInit = {
       method: req.method,

@@ -922,8 +922,13 @@ export async function handleNativeProjectUpload(formData: FormData): Promise<any
   projectsStore.set(projectId, stored);
 
   return {
+    id: projectId,
     project_id: projectId,
+    name: projectName,
     project_name: projectName,
+    architecture_type: "MICROSERVICES",
+    architecture: "MICROSERVICES",
+    services,
     message: "Project uploaded and parsed successfully",
     detected_frameworks: detectedFrameworks,
     detected_languages: detectedLanguages,
