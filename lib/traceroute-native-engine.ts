@@ -1146,7 +1146,7 @@ Ask me any technical question, or let me know what you'd like to investigate!`;
 **Current System Health:** \`${state.system_health}\`
 - **Active Failure Scenario:** \`${state.active_scenario || "None (Nominal Baseline)"}\`
 - **Cluster Average Latency:** \`${state.cluster_metrics.average_latency_ms} ms\` (p95: \`${state.cluster_metrics.p95_latency_ms} ms\`)
-- **Unhealthy Microservices:** \`${state.cluster_metrics.unhealthy_services_count}\` of \`${state.cluster_metrics.total_services}\`
+- **Unhealthy Microservices:** \`${state.cluster_metrics.unhealthy_services_count}\` of \`6\`
 
 ${
   state.active_scenario
