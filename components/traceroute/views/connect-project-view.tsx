@@ -241,6 +241,29 @@ export function ConnectProjectView({
             )}
           </div>
 
+          {/* Quick Demo Download Links */}
+          <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-xl bg-slate-900/60 border border-slate-800 text-xs font-mono">
+            <span className="text-slate-300">Need a sample project archive to test?</span>
+            <div className="flex flex-wrap items-center gap-2">
+              <a
+                href="/fixtures/broken_payment_api_demo.zip"
+                download="broken_payment_api_demo.zip"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-sky-400 hover:text-sky-300 border border-slate-700 transition"
+              >
+                <FileArchive className="w-3.5 h-3.5" />
+                <span>Download Payment API Demo (.zip)</span>
+              </a>
+              <a
+                href="/fixtures/broken_food_delivery_demo.zip"
+                download="broken_food_delivery_demo.zip"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-purple-400 hover:text-purple-300 border border-slate-700 transition"
+              >
+                <FileArchive className="w-3.5 h-3.5" />
+                <span>Download Food Delivery Demo (.zip)</span>
+              </a>
+            </div>
+          </div>
+
           {uploadError && (
             <div className="p-4 rounded-xl bg-rose-950/60 border border-rose-800/80 text-rose-300 text-xs flex items-start gap-3">
               <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
