@@ -111,7 +111,10 @@ export async function GET(req: NextRequest, { params }: { params: { path: string
       const encoder = new TextEncoder();
       const stream = new ReadableStream({
         start(controller) {
-          controller.enqueue(encoder.encode(`event: ping\ndata: {}\n\n`));
+          try {
+            const initialState = getNativeSystemState();
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: "state", data: initialState })}\n\n`));
+          } catch (e) {}
           const interval = setInterval(() => {
             try {
               const state = getNativeSystemState();
