@@ -346,7 +346,7 @@ export function Sidebar({
           </div>
           <div className="flex items-center justify-between">
             <span className="text-slate-400">Control Plane:</span>
-            <span className="text-emerald-400 flex items-center gap-1">
+            <span className="text-emerald-400 flex items-center gap-1" suppressHydrationWarning>
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
               {typeof window !== "undefined" && window.location.hostname !== "localhost" && window.location.hostname !== "127.0.0.1" ? "Cloud Control Plane" : "127.0.0.1:8000"}
             </span>
