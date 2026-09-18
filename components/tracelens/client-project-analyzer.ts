@@ -26,9 +26,34 @@ export async function analyzeZipInBrowser(file: File): Promise<ProjectDetails> {
   let hasPrometheus = false;
   let hasHealthProbe = false;
 
-  // 1. First pass: scan file extensions and configurations
+  const BLOCKED_DIRS = new Set([
+    "node_modules", ".git", "dist", "build", "coverage", "__pycache__", ".venv", "venv", ".next", ".nuxt", ".idea", ".vscode", "target", "vendor", "bin", "obj", ".cache", ".turbo"
+  ]);
+
+  const isBlockedPath = (p: string) => {
+    const parts = p.toLowerCase().replace(/\\/g, "/").split("/");
+    return parts.some(part => BLOCKED_DIRS.has(part));
+  };
+
+  const detectedSubfolders = new Set<string>();
+
+  // 1. First pass: scan file extensions, subfolders, and configurations
   for (const path of fileNames) {
+    if (isBlockedPath(path)) continue;
     const entry = loaded.files[path];
+    const cleanPath = path.replace(/\\/g, "/");
+    const pathParts = cleanPath.split("/").filter(Boolean);
+
+    // Look for top-level service directories (e.g. backend/, frontend/, services/orders/)
+    if (pathParts.length >= 2) {
+      const topDir = pathParts[0].toLowerCase();
+      if (topDir === "services" || topDir === "packages" || topDir === "apps") {
+        detectedSubfolders.add(pathParts[1]);
+      } else if (["backend", "frontend", "api", "server", "client", "worker", "gateway", "auth", "orders", "users", "payments"].includes(topDir)) {
+        detectedSubfolders.add(pathParts[0]);
+      }
+    }
+
     if (entry.dir) continue;
     const lower = path.toLowerCase();
 
@@ -48,20 +73,28 @@ export async function analyzeZipInBrowser(file: File): Promise<ProjectDetails> {
 
   // 2. Second pass: inspect contents of code and configuration files
   for (const path of fileNames) {
+    if (isBlockedPath(path)) continue;
     const entry = loaded.files[path];
     if (entry.dir) continue;
     const lower = path.toLowerCase();
 
-    // Read text of interest
-    if (
+    // Read text of interest (skip huge binary or non-code files)
+    const isCodeFile = (
       lower.endsWith(".py") ||
       lower.endsWith(".js") ||
+      lower.endsWith(".jsx") ||
       lower.endsWith(".ts") ||
+      lower.endsWith(".tsx") ||
       lower.endsWith(".json") ||
       lower.endsWith(".yml") ||
       lower.endsWith(".yaml") ||
-      lower.endsWith(".txt")
-    ) {
+      lower.endsWith(".txt") ||
+      lower.endsWith(".go") ||
+      lower.endsWith(".java") ||
+      lower.includes("dockerfile")
+    );
+
+    if (isCodeFile) {
       try {
         const text = await entry.async("text");
 
@@ -166,17 +199,42 @@ export async function analyzeZipInBrowser(file: File): Promise<ProjectDetails> {
     }
   }
 
-  // If no services discovered from docker-compose, discover from folders/files
+  // If no services discovered from docker-compose, discover from subfolders or base app
   if (discoveredServicesMap.size === 0) {
-    const baseName = file.name.replace(/\.zip$/i, "").toLowerCase();
-    discoveredServicesMap.set(`${baseName}-app`, {
-      id: `${baseName}-app`,
-      name: `${file.name.replace(/\.zip$/i, "")} Service`,
-      framework: Array.from(detectedFrameworks)[0] || "Custom",
-      port: 8000,
-      tier: "application",
-      language: Array.from(detectedLanguages)[0] || "Application"
+    if (detectedSubfolders.size >= 2) {
+      for (const folder of detectedSubfolders) {
+        const isDb = folder.includes("db") || folder.includes("redis") || folder.includes("postgres") || folder.includes("mongo");
+        discoveredServicesMap.set(folder, {
+          id: folder,
+          name: folder.split(/[-_]/).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" "),
+          framework: Array.from(detectedFrameworks)[0] || (isDb ? "Datastore" : "Microservice"),
+          port: isDb ? 5432 : 8000,
+          tier: isDb ? "data" : folder.includes("gateway") ? "edge" : "application",
+          language: Array.from(detectedLanguages)[0] || "Code"
+        });
+      }
+    } else {
+      const baseName = file.name.replace(/\.zip$/i, "").toLowerCase();
+      discoveredServicesMap.set(`${baseName}-app`, {
+        id: `${baseName}-app`,
+        name: `${file.name.replace(/\.zip$/i, "")} Service`,
+        framework: Array.from(detectedFrameworks)[0] || "Custom",
+        port: 8000,
+        tier: "application",
+        language: Array.from(detectedLanguages)[0] || "Application"
+      });
+    }
+  }
+
+  // Ensure at least one route exists
+  if (discoveredRoutes.length === 0) {
+    discoveredRoutes.push({
+      method: "GET",
+      path: "/api/health",
+      file: "routes/health",
+      framework: Array.from(detectedFrameworks)[0] || "HTTP Service"
     });
+    hasHealthProbe = true;
   }
 
   // Ensure any detected database has a service node

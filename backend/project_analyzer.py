@@ -341,17 +341,18 @@ class ProjectAnalyzer:
         for idx, d in enumerate(top_dirs):
             dir_files = [f for f in all_files if f.startswith(d + "/")]
             has_py = any(f.endswith(".py") for f in dir_files)
-            has_js = any(f.endswith(".js") or f.endswith(".ts") for f in dir_files)
+            has_js = any(f.endswith((".js", ".jsx", ".ts", ".tsx", ".mjs", ".cjs")) or "package.json" in f for f in dir_files)
             has_docker = any("dockerfile" in f.lower() for f in dir_files)
+            has_manifest = any("requirements.txt" in f or "go.mod" in f or "pom.xml" in f or "cargo.toml" in f for f in dir_files)
 
-            if has_py or has_js or has_docker:
-                tier = "gateway" if "gateway" in d.lower() else "data" if "db" in d.lower() else "application"
-                framework = "FastAPI" if has_py else "Express" if has_js else "Container Service"
+            if has_py or has_js or has_docker or has_manifest or len(dir_files) > 0:
+                tier = "gateway" if any(k in d.lower() for k in ["gateway", "ingress", "proxy"]) else "data" if any(k in d.lower() for k in ["db", "data", "redis", "postgres", "mongo"]) else "application"
+                framework = "Next.js / React" if any("next" in f or "react" in f for f in dir_files) else "Express / Node" if has_js else "FastAPI" if has_py else "Service Module"
                 services.append({
                     "id": d,
                     "name": d.replace("-", " ").replace("_", " ").title(),
                     "framework": framework,
-                    "language": "Python" if has_py else "TypeScript/JavaScript",
+                    "language": "Python" if has_py else "JavaScript/TypeScript" if has_js else "General",
                     "port": base_port + idx,
                     "tier": tier,
                     "source_dir": f"/{d}",

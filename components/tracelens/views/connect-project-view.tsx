@@ -152,7 +152,7 @@ export function ConnectProjectView({
               <UploadCloud className="w-4 h-4 text-sky-400" />
               Option 1: Upload Project ZIP Archive
             </h2>
-            <span className="text-xs text-slate-400 font-mono">Max 50MB</span>
+            <span className="text-xs text-slate-400 font-mono">Max 500MB</span>
           </div>
 
           <div
