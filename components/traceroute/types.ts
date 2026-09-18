@@ -613,7 +613,7 @@ export type RepairCategory =
 
 export type RepairSeverity = "CRITICAL" | "HIGH" | "MEDIUM" | "LOW";
 
-export type RepairabilityLevel = "AUTO_FIXABLE" | "REVIEW_REQUIRED" | "MANUAL";
+export type RepairabilityLevel = "AUTO_FIXABLE" | "REVIEW_REQUIRED" | "MANUAL" | "MANUAL_ENGINEER_REQUIRED";
 
 export interface ProjectRepairIssue {
   id: string;

@@ -295,6 +295,7 @@ class ProjectManager:
             "dependencies": analysis_data.get("dependencies", []),
             "topology": topology_data,
             "integration_plan": analysis_data.get("integration_plan", {}),
+            "original_filename": analysis_data.get("original_filename", f"{r['name'].lower().replace(' ', '-')}.zip"),
             "capability_level": "LEVEL 1: STATIC PROJECT ANALYSIS"
         }
 
@@ -315,6 +316,15 @@ class ProjectManager:
 
         analysis["sensitive_files_detected"] = extract_result["sensitive_files_detected"]
         analysis["skipped_directories"] = extract_result["skipped_directories"]
+        analysis["original_filename"] = filename
+
+        # Step 2.5: Seed isolated workspace in RepairEngine (original/, working/, reports/, output/)
+        try:
+            from backend.repair_engine import repair_engine
+            repair_engine.get_workspace_paths(proj_id, extract_result["effective_root"])
+            repair_engine.analyze_project_issues(proj_id, extract_result["effective_root"], proj_name, filename)
+        except Exception:
+            pass
 
         # Step 3: Persist project in SQLite
         db = get_db()

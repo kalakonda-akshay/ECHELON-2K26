@@ -778,30 +778,100 @@ def rollback_repair_patch(project_id: str, req: RollbackRequest):
         raise HTTPException(status_code=400, detail=str(e))
 
 @app.post("/api/projects/{project_id}/repair/make-it-run")
-def make_it_run_loop(project_id: str):
-    """Automated iterative repair loop applying Level 1 & approved Level 2 fixes."""
+@app.post("/api/projects/{project_id}/repair/make-it-work")
+def make_it_work_endpoint(project_id: str):
+    """Prominent 'MAKE IT WORK' iterative repair loop: fixes blockers, validates, and generates repaired ZIP."""
     try:
         proj = project_manager.get_project(project_id)
         proj_name = proj["name"] if proj else project_id
+        orig_filename = proj.get("original_filename") if proj else None
         proj_dir = project_manager.get_project_dir(project_id)
-        repair_engine.analyze_project_issues(project_id, proj_dir, proj_name)
-        return repair_engine.make_it_run(project_id)
+        repair_engine.analyze_project_issues(project_id, proj_dir, proj_name, orig_filename)
+        return repair_engine.make_it_work(project_id, orig_filename)
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+@app.get("/api/projects/{project_id}/repaired/download")
 @app.get("/api/projects/{project_id}/repair/export")
-def export_repaired_project(project_id: str):
-    """Exports the repaired project working copy as a downloadable ZIP with TRACEROUTE_REPAIR_REPORT.md."""
+def download_repaired_project(project_id: str, allow_partial: bool = False):
+    """
+    Streams the genuine repaired project ZIP archive from /workspace/{projectId}/output/.
+    Disabled/blocked before validation succeeds unless allow_partial=True is passed.
+    """
     try:
         proj = project_manager.get_project(project_id)
         proj_name = proj["name"] if proj else project_id
-        zip_buf = repair_engine.export_repaired_zip(project_id)
-        filename = f"{proj_name.lower().replace(' ', '-')}-traceroute-repaired.zip"
+        orig_filename = proj.get("original_filename") if proj else None
+        proj_dir = project_manager.get_project_dir(project_id)
+
+        state = repair_engine._project_repair_states.get(project_id)
+        if not state:
+            repair_engine.analyze_project_issues(project_id, proj_dir, proj_name, orig_filename)
+            state = repair_engine._project_repair_states.get(project_id)
+
+        if not state.get("is_repaired", False):
+            if allow_partial:
+                artifact_path, zip_filename = repair_engine.get_repaired_zip_artifact(project_id, allow_partial=True)
+                if not artifact_path or not os.path.exists(artifact_path):
+                    artifact_path, zip_filename = repair_engine.generate_repaired_zip(project_id, is_partial=True)
+            else:
+                raise HTTPException(status_code=400, detail="Complete validation before export.")
+        else:
+            artifact_path, zip_filename = repair_engine.get_repaired_zip_artifact(project_id, allow_partial=False)
+            if not artifact_path or not os.path.exists(artifact_path):
+                artifact_path, zip_filename = repair_engine.generate_repaired_zip(project_id, is_partial=False)
+
+        with open(artifact_path, "rb") as f:
+            content = f.read()
+
         return Response(
-            content=zip_buf.getvalue(),
+            content=content,
             media_type="application/zip",
-            headers={"Content-Disposition": f'attachment; filename="{filename}"'}
+            headers={
+                "Content-Disposition": f'attachment; filename="{zip_filename}"',
+                "Content-Length": str(len(content))
+            }
         )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.get("/api/projects/{project_id}/repaired/status")
+def get_repaired_status(project_id: str):
+    """Returns current repair and validation readiness status for UI controls."""
+    try:
+        proj = project_manager.get_project(project_id)
+        proj_name = proj["name"] if proj else project_id
+        orig_filename = proj.get("original_filename") if proj else None
+        proj_dir = project_manager.get_project_dir(project_id)
+
+        state = repair_engine._project_repair_states.get(project_id)
+        if not state:
+            repair_engine.analyze_project_issues(project_id, proj_dir, proj_name, orig_filename)
+            state = repair_engine._project_repair_states.get(project_id)
+
+        artifact_path, zip_filename = repair_engine.get_repaired_zip_artifact(project_id, allow_partial=False)
+        partial_path, partial_filename = repair_engine.get_repaired_zip_artifact(project_id, allow_partial=True)
+        validation = repair_engine.run_validation(project_id)
+
+        is_ready = bool(artifact_path and os.path.exists(artifact_path))
+        active_filename = zip_filename if is_ready else partial_filename
+
+        return {
+            "project_id": project_id,
+            "project_name": proj_name,
+            "original_filename": orig_filename or f"{proj_name.lower().replace(' ', '-')}.zip",
+            "is_repaired": is_ready,
+            "repaired_zip_filename": active_filename,
+            "download_url": f"/api/projects/{project_id}/repaired/download",
+            "framework": state.get("framework", "Polyglot Microservices"),
+            "validation": validation,
+            "before_after": state.get("before_after", {}),
+            "files_modified": state.get("files_modified", []),
+            "applied_fixes": [i["title"] for i in state.get("issues", []) if i.get("applied")],
+            "remaining_blockers": len([i for i in state.get("issues", []) if not i.get("applied") and i.get("is_blocker", False)])
+        }
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
