@@ -363,6 +363,12 @@ export async function POST(req: NextRequest, { params }: { params: { path: strin
         const parts = subpath.split("/");
         const projectId = parts[1];
 
+        if (parts[1] === "sample") {
+          const sampleId = parts[2];
+          const sampleProj = getNativeProjectDetails(sampleId);
+          return NextResponse.json(sampleProj || getNativeProjectDetails("FoodDelivery-Demo"));
+        }
+
         if (parts[2] === "repair" && (parts[3] === "make-it-work" || parts[3] === "make-it-run")) {
           const repairResult = await handleNativeMakeItWork(projectId);
           return NextResponse.json(repairResult);

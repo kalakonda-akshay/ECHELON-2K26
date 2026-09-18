@@ -121,6 +121,78 @@ projectsStore.set("FoodDelivery-Demo", {
   repair_iterations: 0
 });
 
+projectsStore.set("sample-broken-food-delivery", {
+  id: "sample-broken-food-delivery",
+  name: "Broken Food Delivery",
+  upload_timestamp: new Date().toISOString(),
+  frameworks: ["FastAPI", "Docker"],
+  languages: ["Python", "YAML"],
+  health_score: 58,
+  services: [
+    { name: "api-gateway", framework: "FastAPI", language: "Python", routes_count: 1, critical: true },
+    { name: "order-service", framework: "FastAPI", language: "Python", routes_count: 2, critical: true },
+    { name: "payment-service", framework: "FastAPI", language: "Python", routes_count: 2, critical: true },
+    { name: "postgres-db", framework: "PostgreSQL", language: "SQL", routes_count: 0, critical: true }
+  ],
+  routes: [
+    { service: "api-gateway", method: "GET", path: "/health", auth_required: false },
+    { service: "order-service", method: "POST", path: "/api/orders", auth_required: true },
+    { service: "payment-service", method: "POST", path: "/api/payment", auth_required: true }
+  ],
+  issues: [
+    {
+      id: "issue-1",
+      category: "configuration",
+      title: "Missing Environment Fallback (DATABASE_PORT)",
+      severity: "BLOCKER",
+      file_path: "services/payment/config.py",
+      line_number: 4,
+      repaired: false
+    },
+    {
+      id: "issue-2",
+      category: "dependencies",
+      title: "Missing Declared Dependency: requests",
+      severity: "BLOCKER",
+      file_path: "services/order/requirements.txt",
+      line_number: 4,
+      repaired: false
+    },
+    {
+      id: "issue-3",
+      category: "routes",
+      title: "API Route Contract Mismatch (/api/payments vs /api/payment)",
+      severity: "BLOCKER",
+      file_path: "services/order/main.py",
+      line_number: 18,
+      repaired: false
+    }
+  ],
+  is_repaired: false,
+  repair_iterations: 0
+});
+
+projectsStore.set("sample-myshop-microservices", {
+  id: "sample-myshop-microservices",
+  name: "MyShop E-Commerce Microservices",
+  upload_timestamp: new Date().toISOString(),
+  frameworks: ["FastAPI", "Express", "PostgreSQL"],
+  languages: ["Python", "TypeScript", "SQL"],
+  health_score: 85,
+  services: [
+    { name: "gateway", framework: "FastAPI", language: "Python", routes_count: 4, critical: true },
+    { name: "order-svc", framework: "FastAPI", language: "Python", routes_count: 6, critical: true },
+    { name: "payment-svc", framework: "Express", language: "TypeScript", routes_count: 3, critical: true }
+  ],
+  routes: [
+    { service: "gateway", method: "GET", path: "/health", auth_required: false },
+    { service: "order-svc", method: "POST", path: "/api/orders", auth_required: true }
+  ],
+  issues: [],
+  is_repaired: true,
+  repair_iterations: 0
+});
+
 export function getNativeSystemState() {
   const metrics: Record<string, ServiceMetric> = {};
 

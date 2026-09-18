@@ -353,6 +353,33 @@ export function ConnectProjectView({
                 </span>
               </div>
             </div>
+
+            {/* Sample 4: Broken Food Delivery (Repair Lab Demo) */}
+            <div
+              onClick={() => handleSampleSelect("sample-broken-food-delivery")}
+              className="p-4 rounded-xl bg-slate-900/80 hover:bg-slate-900 border border-slate-800 hover:border-rose-500/50 transition cursor-pointer group shadow-sm"
+            >
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-rose-400 animate-pulse" />
+                  <h3 className="text-sm font-bold text-white group-hover:text-rose-300 transition">
+                    Broken Food Delivery
+                  </h3>
+                </div>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-rose-950 text-rose-400 border border-rose-800">
+                  3 Fixable Issues
+                </span>
+              </div>
+              <p className="text-xs text-slate-400 leading-relaxed mb-3">
+                Pre-packaged microservices project with build blockers (missing env fallback, missing dependency, route mismatch) ready for Project Repair Lab.
+              </p>
+              <div className="flex items-center justify-between pt-2 border-t border-slate-800/60 text-[11px] font-mono text-slate-400">
+                <span>FastAPI • Docker • Repair Lab</span>
+                <span className="flex items-center gap-1 text-rose-400 group-hover:translate-x-0.5 transition font-semibold">
+                  Test Repair Lab <ChevronRight className="w-3 h-3" />
+                </span>
+              </div>
+            </div>
           </div>
         </div>
       </div>

@@ -372,6 +372,12 @@ class ProjectManager:
             return self.sample_fastapi
         elif sample_id == "sample-express-payment":
             return self.sample_express
+        elif sample_id in ["sample-broken-food-delivery", "broken-food-delivery", "broken_food_delivery"]:
+            fixture_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "fixtures", "broken_food_delivery.zip")
+            if os.path.exists(fixture_path):
+                with open(fixture_path, "rb") as f:
+                    return self.import_zip_archive(f.read(), "broken_food_delivery.zip")
+            return self.sample_myshop
         else:
             return self.sample_myshop
 
