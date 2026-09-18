@@ -96,6 +96,7 @@ class ChangeAnalysisRequest(BaseModel):
     description: Optional[str] = ""
 
 @app.get("/")
+@app.get("/api/health")
 def read_root():
     return {
         "service": "TraceRoute AI API",
