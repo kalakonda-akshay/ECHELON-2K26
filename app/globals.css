@@ -1,0 +1,134 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Institutional light theme: cool paper background, civic navy accent */
+    --background: 210 20% 98%;
+    --foreground: 210 30% 14%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 210 30% 14%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 210 30% 14%;
+
+    --primary: 199 62% 21%;
+    --primary-foreground: 210 20% 98%;
+
+    --secondary: 210 20% 93%;
+    --secondary-foreground: 210 30% 18%;
+
+    --muted: 210 20% 93%;
+    --muted-foreground: 210 12% 42%;
+
+    --accent: 199 40% 90%;
+    --accent-foreground: 199 62% 18%;
+
+    --destructive: 4 62% 40%;
+    --destructive-foreground: 210 20% 98%;
+
+    --border: 210 18% 88%;
+    --input: 210 18% 85%;
+    --ring: 199 62% 30%;
+
+    --radius: 0.5rem;
+
+    /* Sidebar: deep civic navy, distinct from main canvas */
+    --sidebar-background: 205 45% 12%;
+    --sidebar-foreground: 205 25% 88%;
+    --sidebar-primary: 199 62% 40%;
+    --sidebar-primary-foreground: 210 20% 98%;
+    --sidebar-accent: 205 35% 18%;
+    --sidebar-accent-foreground: 205 25% 92%;
+    --sidebar-border: 205 35% 20%;
+    --sidebar-ring: 199 62% 40%;
+
+    /* Risk semantics — desaturated, official, consistent everywhere */
+    --risk-low: 152 45% 30%;
+    --risk-low-foreground: 0 0% 100%;
+    --risk-medium: 36 75% 38%;
+    --risk-medium-foreground: 0 0% 100%;
+    --risk-high: 4 62% 40%;
+    --risk-high-foreground: 0 0% 100%;
+  }
+
+  .dark {
+    --background: 205 30% 8%;
+    --foreground: 205 20% 92%;
+
+    --card: 205 28% 11%;
+    --card-foreground: 205 20% 92%;
+
+    --popover: 205 28% 11%;
+    --popover-foreground: 205 20% 92%;
+
+    --primary: 199 55% 55%;
+    --primary-foreground: 205 30% 8%;
+
+    --secondary: 205 22% 16%;
+    --secondary-foreground: 205 20% 90%;
+
+    --muted: 205 22% 16%;
+    --muted-foreground: 205 12% 65%;
+
+    --accent: 205 25% 18%;
+    --accent-foreground: 199 55% 75%;
+
+    --destructive: 4 55% 48%;
+    --destructive-foreground: 205 20% 95%;
+
+    --border: 205 20% 20%;
+    --input: 205 20% 22%;
+    --ring: 199 55% 50%;
+
+    --sidebar-background: 205 35% 6%;
+    --sidebar-foreground: 205 20% 85%;
+    --sidebar-primary: 199 55% 55%;
+    --sidebar-primary-foreground: 205 30% 8%;
+    --sidebar-accent: 205 30% 12%;
+    --sidebar-accent-foreground: 205 20% 92%;
+    --sidebar-border: 205 30% 16%;
+    --sidebar-ring: 199 55% 50%;
+
+    --risk-low: 152 40% 45%;
+    --risk-low-foreground: 205 30% 8%;
+    --risk-medium: 36 70% 52%;
+    --risk-medium-foreground: 205 30% 8%;
+    --risk-high: 4 62% 55%;
+    --risk-high-foreground: 205 30% 8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "cv11", "ss01";
+  }
+}
+
+/* Leaflet base CSS is imported via CDN link in layout; this fixes z-index
+   clashes with shadcn overlays (Sheet/Dialog) which use higher z-index. */
+.leaflet-container {
+  z-index: 0;
+  font-family: var(--font-sans), system-ui, sans-serif;
+}
+.leaflet-pane,
+.leaflet-top,
+.leaflet-bottom {
+  z-index: 10;
+}
+
+@layer utilities {
+  .input {
+    @apply rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100;
+  }
+  .btn-primary {
+    @apply inline-flex items-center justify-center rounded-md bg-slate-800 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200;
+  }
+}
+
