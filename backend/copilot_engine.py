@@ -6,6 +6,27 @@ import urllib.error
 from typing import Dict, List, Any, Optional, AsyncGenerator
 
 class TraceRouteCopilot:
+    def _resolve_api_key(self, api_key: Optional[str] = None) -> Optional[str]:
+        """Resolves active Gemini API key from explicit param, environment variables, or local .env files."""
+        if api_key and api_key.strip():
+            return api_key.strip()
+        key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY") or os.getenv("NEXT_PUBLIC_GEMINI_API_KEY")
+        if key and key.strip():
+            return key.strip()
+        from pathlib import Path
+        for env_path in [Path(".env.local"), Path(".env"), Path(__file__).resolve().parent.parent / ".env.local"]:
+            if env_path.is_file():
+                try:
+                    for line in env_path.read_text(encoding="utf-8").splitlines():
+                        line = line.strip()
+                        if line.startswith("GEMINI_API_KEY=") or line.startswith("GOOGLE_API_KEY=") or line.startswith("NEXT_PUBLIC_GEMINI_API_KEY="):
+                            val = line.split("=", 1)[1].strip().strip('"').strip("'")
+                            if val:
+                                return val
+                except Exception:
+                    pass
+        return None
+
     """
     TraceRoute Conversational SRE Copilot (Powered by Google Gemini)
     Multi-turn conversational AI grounded in live telemetry, causal graphs, and static project analysis.
@@ -118,7 +139,7 @@ SRE Operational Guidelines:
           data: {"type": "action_links", "action_links": [...]}
           data: {"type": "done", "confidence": "HIGH", "model_source": "..."}
         """
-        effective_key = api_key or os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
+        effective_key = self._resolve_api_key(api_key)
         last_question = ""
         for m in reversed(messages):
             if m.get("role") in ["user", "human"] and m.get("content"):
@@ -401,7 +422,7 @@ SRE Operational Guidelines:
 
     def _call_gemini_api(self, api_key: str, system_prompt: str, user_prompt: str) -> Optional[str]:
         """Direct HTTPS call to Google Gemini REST API across latest supported models."""
-        candidate_models = ["gemini-2.5-flash", "gemini-flash-latest", "gemini-1.5-flash", "gemini-2.0-flash"]
+        candidate_models = ["gemini-flash-lite-latest", "gemini-3.1-flash-lite-preview", "gemini-3.5-flash-lite", "gemini-flash-latest", "gemini-pro-latest", "gemini-2.5-flash"]
         payload = {
             "contents": [
                 {
@@ -454,7 +475,7 @@ SRE Operational Guidelines:
         q_lower = question.lower().strip()
         
         # Check for Gemini API key in request or environment
-        effective_key = api_key or os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
+        effective_key = self._resolve_api_key(api_key)
 
         initiator = diagnosis.get("initiating_service_name", diagnosis.get("initiating_service", "Unknown"))
         initiator_id = diagnosis.get("initiating_service", "")

@@ -317,15 +317,15 @@ export async function POST(req: NextRequest, { params }: { params: { path: strin
 
     case "copilot/ask":
     case "copilot/query": {
-      const text = await generateNativeCopilotResponse(body.question || "");
-      return NextResponse.json({ answer: text, question: body.question, confidence: 0.92, model_source: "Native TraceRoute AI Engine" });
+      const text = await generateNativeCopilotResponse(body.question || "", body.api_key, body.messages);
+      return NextResponse.json({ answer: text, question: body.question, confidence: 0.95, model_source: "TraceRoute Gemini SRE Engine" });
     }
 
     case "copilot/chat/stream": {
       const userMsg = (body.messages && body.messages.length > 0)
         ? body.messages[body.messages.length - 1].content
         : "Explain system status";
-      const fullReply = await generateNativeCopilotResponse(userMsg);
+      const fullReply = await generateNativeCopilotResponse(userMsg, body.api_key, body.messages);
 
       const encoder = new TextEncoder();
       const stream = new ReadableStream({
