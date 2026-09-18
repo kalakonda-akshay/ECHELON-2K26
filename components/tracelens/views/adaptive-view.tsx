@@ -6,7 +6,7 @@ import {
   SystemStatus,
   Diagnosis
 } from "../types";
-import { TraceLensAPI } from "../api";
+import { TraceRouteAPI } from "../api";
 import {
   BrainCircuit,
   Search,
@@ -52,7 +52,7 @@ export function AdaptiveView({
     if (!scenario) return;
     setIsAcquiring(true);
     try {
-      await TraceLensAPI.acquireEvidence(scenario);
+      await TraceRouteAPI.acquireEvidence(scenario);
       await onRefresh();
     } catch (err) {
       console.error("Failed to acquire evidence:", err);

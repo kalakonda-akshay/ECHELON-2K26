@@ -537,21 +537,21 @@ export function LiveIncidentStory({
     }
 
     // -------------------------------------------------------------
-    // 3. INVESTIGATION CHAPTER (TraceLens Adaptive Evidence Engine)
+    // 3. INVESTIGATION CHAPTER (TraceRoute Adaptive Evidence Engine)
     // -------------------------------------------------------------
     events.push({
       id: "inv-step-1",
       timestamp: sec(12),
       service: "control-plane",
-      serviceName: "TraceLens AI",
+      serviceName: "TraceRoute AI",
       category: "INVESTIGATION",
       priority: "P5",
-      title: "TRACELENS OPENED INVESTIGATION",
+      title: "TRACEROUTE OPENED INVESTIGATION",
       description: `Customer symptom detected: ${diagnosis?.incident?.symptom || "502 Bad Gateway"}. Autonomous evidence collector dispatched.`,
       metricLabel: "Telemetry Stream",
       metricBefore: "Monitoring",
       metricAfter: "Tracing Active",
-      evidenceType: "TraceLens Adaptive Evidence Engine",
+      evidenceType: "TraceRoute Adaptive Evidence Engine",
       rawEvidence: "Adaptive investigation triggered on P0 customer error spike. Inspecting critical path topology.",
       chapterIndex: 4,
       timeDeltaText: "+2 seconds"
@@ -561,7 +561,7 @@ export function LiveIncidentStory({
       id: "inv-step-2",
       timestamp: sec(15),
       service: "control-plane",
-      serviceName: "TraceLens AI",
+      serviceName: "TraceRoute AI",
       category: "INVESTIGATION",
       priority: "P5",
       title: "ROOT-CAUSE EVIDENCE CORRELATED",
@@ -940,7 +940,7 @@ export function LiveIncidentStory({
               are active.
             </p>
             <div className="text-[10px] text-slate-500 font-mono pt-1">
-              TraceLens is watching for latency threshold deviations...
+              TraceRoute is watching for latency threshold deviations...
             </div>
           </div>
         )}

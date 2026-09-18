@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { IncidentRecord } from "../types";
-import { TraceLensAPI } from "../api";
+import { TraceRouteAPI } from "../api";
 import {
   History,
   ShieldCheck,
@@ -23,7 +23,7 @@ export function HistoryView() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   useEffect(() => {
-    TraceLensAPI.getIncidentHistory()
+    TraceRouteAPI.getIncidentHistory()
       .then((data) => {
         setIncidents(data);
         setLoading(false);

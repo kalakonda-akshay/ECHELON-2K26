@@ -28,7 +28,7 @@ def get(path: str) -> dict:
 
 def test_root_cause_scenarios():
     print("==================================================================")
-    print("TEST SUITE: TraceLens Root-Cause & Adaptive Evidence Engine")
+    print("TEST SUITE: TraceRoute Root-Cause & Adaptive Evidence Engine")
     print("==================================================================")
 
     # Scenarios to test with their deterministic expected outcomes

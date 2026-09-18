@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { RecoveryPlan, VerificationResult } from "../types";
-import { TraceLensAPI } from "../api";
+import { TraceRouteAPI } from "../api";
 import {
   ShieldCheck,
   ShieldAlert,
@@ -55,7 +55,7 @@ export function RecoveryView({
 
     try {
       // Phase 1: Approve and execute on backend (modifies actual simulator state)
-      const execRes = await TraceLensAPI.approveRecovery(recoveryPlan.action_id);
+      const execRes = await TraceRouteAPI.approveRecovery(recoveryPlan.action_id);
       setExecutionOutput((prev) => `${prev}\n[0.4s] Control-plane command dispatched: ${recoveryPlan.command}`);
       
       // Progress through verification phases
@@ -80,7 +80,7 @@ export function RecoveryView({
       setExecutionOutput((prev) => `${prev}\n[2.5s] Synthetic transaction returned HTTP 200 OK across full trace waterfall.`);
 
       // Final step: Query backend verification
-      const verRes = await TraceLensAPI.verifyRecovery();
+      const verRes = await TraceRouteAPI.verifyRecovery();
       setVerificationResult(verRes);
       setExecutionOutput((prev) => `${prev}\n[2.8s] All 5 checks passed. Incident recorded in SQLite audit register. RECOVERY VERIFIED.`);
       onRecoveryComplete();
@@ -100,7 +100,7 @@ export function RecoveryView({
         <div>
           <h3 className="text-base font-bold text-white">System in Baseline Health</h3>
           <p className="text-xs text-slate-400 mt-1">
-            Zero active incidents requiring mitigation. When an anomaly is isolated, TraceLens will draft a safe, context-appropriate recovery playbook requiring explicit engineer sign-off.
+            Zero active incidents requiring mitigation. When an anomaly is isolated, TraceRoute will draft a safe, context-appropriate recovery playbook requiring explicit engineer sign-off.
           </p>
         </div>
         <button

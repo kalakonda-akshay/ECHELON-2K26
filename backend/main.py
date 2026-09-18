@@ -42,7 +42,7 @@ from backend.copilot_engine import copilot_engine
 init_db()
 
 app = FastAPI(
-    title="TraceLens AI API",
+    title="TraceRoute AI API",
     description="Intelligent observability and controlled-recovery platform for microservices",
     version="2.0.0"
 )
@@ -97,7 +97,7 @@ class ChangeAnalysisRequest(BaseModel):
 @app.get("/")
 def read_root():
     return {
-        "service": "TraceLens AI API",
+        "service": "TraceRoute AI API",
         "tagline": "Detect. Trace. Explain. Recover. Verify.",
         "status": "ONLINE",
         "endpoints": [
@@ -570,7 +570,7 @@ def copilot_query(req: CopilotRequest):
 async def copilot_chat_stream(req: CopilotChatStreamRequest):
     """
     Streaming multi-turn conversational AI Copilot endpoint.
-    Builds rich structured TraceLens context (telemetry, root cause, evidence, project analysis)
+    Builds rich structured TraceRoute context (telemetry, root cause, evidence, project analysis)
     and yields token-by-token SSE streaming response.
     """
     tick = simulator.tick()
@@ -722,7 +722,7 @@ def get_project_integration_plan(project_id: str):
 
 @app.post("/api/projects/{project_id}/telemetry")
 def ingest_project_telemetry(project_id: str, payload: Dict[str, Any]):
-    """Ingest live external telemetry and normalize into TraceLens engine format."""
+    """Ingest live external telemetry and normalize into TraceRoute engine format."""
     res = project_manager.ingest_telemetry(project_id, payload)
     simulator.ingest_telemetry(payload)
     return res

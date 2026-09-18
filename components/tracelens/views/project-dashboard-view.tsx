@@ -22,8 +22,8 @@ import {
   Zap,
   Info
 } from "lucide-react";
-import { ProjectDetails, ProjectCapabilityLevel } from "@/components/tracelens/types";
-import { TopologyView } from "@/components/tracelens/views/topology-view";
+import { ProjectDetails, ProjectCapabilityLevel } from "@/components/traceroute/types";
+import { TopologyView } from "@/components/traceroute/views/topology-view";
 
 interface ProjectDashboardViewProps {
   project: ProjectDetails;
@@ -399,13 +399,13 @@ export function ProjectDashboardView({
             </div>
           </div>
 
-          {/* Two-Column: What TraceLens Found vs Observability Gaps */}
+          {/* Two-Column: What TraceRoute Found vs Observability Gaps */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* What TraceLens Found */}
+            {/* What TraceRoute Found */}
             <div className="bg-tl-card border border-tl-border rounded-xl p-5 space-y-3 font-mono text-xs">
               <div className="flex items-center gap-2 text-slate-200 font-bold uppercase text-[11px] border-b border-tl-border pb-2">
                 <CheckCircle2 className="w-4 h-4 text-tl-green" />
-                <span>What TraceLens Found</span>
+                <span>What TraceRoute Found</span>
               </div>
               <ul className="space-y-2 text-slate-300">
                 <li className="flex items-center gap-2">
@@ -474,7 +474,7 @@ export function ProjectDashboardView({
               </button>
             </div>
             <p className="text-xs text-slate-400 font-sans">
-              Inject the lightweight TraceLens OpenTelemetry tracer module into your service entrypoints. Spans, golden signals, and errors will automatically stream into TraceLens for causal root-cause analysis.
+              Inject the lightweight TraceRoute OpenTelemetry tracer module into your service entrypoints. Spans, golden signals, and errors will automatically stream into TraceRoute for causal root-cause analysis.
             </p>
           </div>
 
@@ -539,7 +539,7 @@ export function ProjectDashboardView({
                 Zero-Code / Lightweight Tracing Instrumentation
               </h3>
               <p className="text-xs text-slate-400 mt-1">
-                Install OpenTelemetry SDK in your service to transmit distributed spans and golden signals directly into TraceLens.
+                Install OpenTelemetry SDK in your service to transmit distributed spans and golden signals directly into TraceRoute.
               </p>
             </div>
 
@@ -607,7 +607,7 @@ export function ProjectDashboardView({
             <div className="p-4 rounded-xl bg-sky-950/20 border border-sky-800/40 text-xs text-sky-300 space-y-1 font-mono">
               <div className="font-semibold flex items-center gap-1.5">
                 <Info className="w-4 h-4" />
-                <span>TraceLens Ingestion Endpoint</span>
+                <span>TraceRoute Ingestion Endpoint</span>
               </div>
               <p className="text-sky-300/80">
                 POST telemetry payloads to: <code>http://127.0.0.1:8000/api/projects/{project.id}/telemetry</code>

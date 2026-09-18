@@ -50,7 +50,7 @@ class SecureArchiveExtractor:
 
     def __init__(self, base_workspace_dir: str = None):
         if not base_workspace_dir:
-            base_workspace_dir = os.path.join(tempfile.gettempdir(), "tracelens_workspaces")
+            base_workspace_dir = os.path.join(tempfile.gettempdir(), "traceroute_workspaces")
         self.base_workspace_dir = os.path.abspath(base_workspace_dir)
         os.makedirs(self.base_workspace_dir, exist_ok=True)
 

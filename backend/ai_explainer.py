@@ -29,7 +29,7 @@ class AIIncidentExplainer:
         if scenario == "database_failure":
             headline = f"Critical Cascade Originating from {initiator_name}: Connection Pool Saturation"
             summary = (
-                f"TraceLens identified {initiator_name} as the root failure source with an evidence score of {score}/100. "
+                f"TraceRoute identified {initiator_name} as the root failure source with an evidence score of {score}/100. "
                 f"The PostgreSQL connection pool reached 100% capacity (150/150 max_connections), causing socket timeouts "
                 f"in Payment Service. This cascaded up to Order Service retries, ultimately manifesting as HTTP 502 Bad Gateway "
                 f"errors at the API Gateway."
@@ -44,7 +44,7 @@ class AIIncidentExplainer:
         elif scenario == "payment_latency":
             headline = f"Severe Latency Degradation Originating in {initiator_name}: JVM GC Pause"
             summary = (
-                f"TraceLens identified {initiator_name} as the root latency initiator with an evidence score of {score}/100. "
+                f"TraceRoute identified {initiator_name} as the root latency initiator with an evidence score of {score}/100. "
                 f"A prolonged JVM garbage collection pause (3840ms G1 Evacuation) locked worker threads and exceeded "
                 f"the 2000ms upstream SLA threshold, degrading checkout throughput."
             )
@@ -57,7 +57,7 @@ class AIIncidentExplainer:
         elif scenario == "inventory_crash":
             headline = f"Single Point of Failure Crash: {initiator_name} Container Termination"
             summary = (
-                f"TraceLens isolated {initiator_name} as the root cause with an evidence score of {score}/100. "
+                f"TraceRoute isolated {initiator_name} as the root cause with an evidence score of {score}/100. "
                 f"The container process terminated abruptly (exit code 137, OOMKilled), causing immediate socket connection "
                 f"refusals and cascading into partial checkout order rejections."
             )
@@ -72,7 +72,7 @@ class AIIncidentExplainer:
             version = deployment.get("version", "v2.4.1") if deployment else "v2.4.1"
             headline = f"Performance Regression Associated with Deployment {version} ({commit_id})"
             summary = (
-                f"TraceLens detected an unindexed query regression in {initiator_name} with an evidence score of {score}/100. "
+                f"TraceRoute detected an unindexed query regression in {initiator_name} with an evidence score of {score}/100. "
                 f"Suspected change: Release {version} (commit {commit_id}) deployed 3 minutes prior introduced a sequential table scan "
                 f"that exhausted database IOPS and cascaded across dependent order services."
             )
@@ -83,7 +83,7 @@ class AIIncidentExplainer:
             )
         else:
             headline = f"Telemetry Anomaly Detected in {initiator_name}"
-            summary = f"TraceLens isolated {initiator_name} with score {score}/100."
+            summary = f"TraceRoute isolated {initiator_name} with score {score}/100."
             narrative = "Incident investigation active."
 
         why_root_cause = reasons

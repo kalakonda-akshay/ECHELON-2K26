@@ -21,7 +21,7 @@ def get(path: str) -> dict:
 
 def run_complete_demo_test():
     print("==================================================================")
-    print("DEMO VERIFICATION: TraceLens End-to-End Controlled Recovery Suite")
+    print("DEMO VERIFICATION: TraceRoute End-to-End Controlled Recovery Suite")
     print("==================================================================")
 
     # 1. BASELINE

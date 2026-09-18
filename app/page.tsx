@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { TraceLensAPI } from "@/components/tracelens/api";
+import { TraceRouteAPI } from "@/components/traceroute/api";
 import {
   SystemStatus,
   TopologyData,
@@ -13,30 +13,30 @@ import {
   EarlyWarningData,
   CausalGraphData,
   AdaptiveAnalysis
-} from "@/components/tracelens/types";
-import { Sidebar } from "@/components/tracelens/shell/sidebar";
-import { Topbar } from "@/components/tracelens/shell/topbar";
-import { OverviewView } from "@/components/tracelens/views/overview-view";
-import { TopologyView } from "@/components/tracelens/views/topology-view";
-import { CausalGraphView } from "@/components/tracelens/views/causal-graph-view";
-import { AdaptiveView } from "@/components/tracelens/views/adaptive-view";
-import { RootCauseView } from "@/components/tracelens/views/root-cause-view";
-import { BlastRadiusView } from "@/components/tracelens/views/blast-radius-view";
-import { SandboxView } from "@/components/tracelens/views/sandbox-view";
-import { MemoryView } from "@/components/tracelens/views/memory-view";
-import { DeploymentsView } from "@/components/tracelens/views/deployments-view";
-import { DemoLabView } from "@/components/tracelens/views/demo-lab-view";
-import { PresentationView } from "@/components/tracelens/views/presentation-view";
-import { ConnectProjectView } from "@/components/tracelens/views/connect-project-view";
-import { ProjectDashboardView } from "@/components/tracelens/views/project-dashboard-view";
-import { WhyNowView } from "@/components/tracelens/views/why-now-view";
-import { CopilotView } from "@/components/tracelens/views/copilot-view";
-import { ReplayView } from "@/components/tracelens/views/replay-view";
-import { ProjectSummary, ProjectDetails } from "@/components/tracelens/types";
-import { DevDiagnosticsPanel } from "@/components/tracelens/dev-diagnostics-panel";
+} from "@/components/traceroute/types";
+import { Sidebar } from "@/components/traceroute/shell/sidebar";
+import { Topbar } from "@/components/traceroute/shell/topbar";
+import { OverviewView } from "@/components/traceroute/views/overview-view";
+import { TopologyView } from "@/components/traceroute/views/topology-view";
+import { CausalGraphView } from "@/components/traceroute/views/causal-graph-view";
+import { AdaptiveView } from "@/components/traceroute/views/adaptive-view";
+import { RootCauseView } from "@/components/traceroute/views/root-cause-view";
+import { BlastRadiusView } from "@/components/traceroute/views/blast-radius-view";
+import { SandboxView } from "@/components/traceroute/views/sandbox-view";
+import { MemoryView } from "@/components/traceroute/views/memory-view";
+import { DeploymentsView } from "@/components/traceroute/views/deployments-view";
+import { DemoLabView } from "@/components/traceroute/views/demo-lab-view";
+import { PresentationView } from "@/components/traceroute/views/presentation-view";
+import { ConnectProjectView } from "@/components/traceroute/views/connect-project-view";
+import { ProjectDashboardView } from "@/components/traceroute/views/project-dashboard-view";
+import { WhyNowView } from "@/components/traceroute/views/why-now-view";
+import { CopilotView } from "@/components/traceroute/views/copilot-view";
+import { ReplayView } from "@/components/traceroute/views/replay-view";
+import { ProjectSummary, ProjectDetails } from "@/components/traceroute/types";
+import { DevDiagnosticsPanel } from "@/components/traceroute/dev-diagnostics-panel";
 import { RefreshCw } from "lucide-react";
 
-export default function TraceLensPage() {
+export default function TraceRoutePage() {
   const [activeTab, setActiveTab] = useState<string>("overview");
   const [isPresentationMode, setIsPresentationMode] = useState<boolean>(false);
 
@@ -80,17 +80,17 @@ export default function TraceLensPage() {
         adaptiveRes,
         projectsList
       ] = await Promise.all([
-        TraceLensAPI.getStatus().catch(() => null),
-        TraceLensAPI.getTopology().catch(() => null),
-        TraceLensAPI.getTelemetry().catch(() => null),
-        TraceLensAPI.getDiagnosis().catch(() => null),
-        TraceLensAPI.getInvestigation().catch(() => null),
-        TraceLensAPI.getRecoveryRecommendation().catch(() => null),
-        TraceLensAPI.getBlastRadius().catch(() => null),
-        TraceLensAPI.getEarlyWarning().catch(() => null),
-        TraceLensAPI.getCausalGraph().catch(() => null),
-        TraceLensAPI.getAdaptiveAnalysis().catch(() => null),
-        TraceLensAPI.listProjects().catch(() => [])
+        TraceRouteAPI.getStatus().catch(() => null),
+        TraceRouteAPI.getTopology().catch(() => null),
+        TraceRouteAPI.getTelemetry().catch(() => null),
+        TraceRouteAPI.getDiagnosis().catch(() => null),
+        TraceRouteAPI.getInvestigation().catch(() => null),
+        TraceRouteAPI.getRecoveryRecommendation().catch(() => null),
+        TraceRouteAPI.getBlastRadius().catch(() => null),
+        TraceRouteAPI.getEarlyWarning().catch(() => null),
+        TraceRouteAPI.getCausalGraph().catch(() => null),
+        TraceRouteAPI.getAdaptiveAnalysis().catch(() => null),
+        TraceRouteAPI.listProjects().catch(() => [])
       ]);
 
       if (statusData) {
@@ -113,7 +113,7 @@ export default function TraceLensPage() {
 
       setLastRefreshed(new Date());
     } catch (err) {
-      console.error("Failed to sync TraceLens telemetry:", err);
+      console.error("Failed to sync TraceRoute telemetry:", err);
       setBackendOnline(false);
     } finally {
       setIsLoading(false);
@@ -125,14 +125,14 @@ export default function TraceLensPage() {
     fetchAllData();
 
     // Zero-latency reactive stream: updates 6 dashboard cards in real time without browser refresh
-    const disconnectStream = TraceLensAPI.connectTelemetryStream(
-      (incomingState) => {
-        setStatus((prev) => {
+    const disconnectStream = TraceRouteAPI.connectTelemetryStream(
+      (incomingState: any) => {
+        setStatus((prev: any) => {
           // If incident or system health transitioned, refresh full diagnosis in background
           if (
-            prev?.active_incident_id !== incomingState.active_incident_id ||
-            prev?.system_health !== incomingState.system_health ||
-            prev?.active_scenario !== incomingState.active_scenario
+            prev?.active_incident_id !== incomingState?.active_incident_id ||
+            prev?.system_health !== incomingState?.system_health ||
+            prev?.active_scenario !== incomingState?.active_scenario
           ) {
             fetchAllData();
           }
@@ -140,7 +140,7 @@ export default function TraceLensPage() {
         });
         setLastRefreshed(new Date());
       },
-      (connected) => {
+      (connected: boolean) => {
         setIsStreamConnected(connected);
         if (connected) setBackendOnline(true);
       }
@@ -158,7 +158,7 @@ export default function TraceLensPage() {
   const handleToggleDataMode = async () => {
     const nextMode = status?.data_mode === "LIVE" ? "DEMO" : "LIVE";
     try {
-      await TraceLensAPI.setTelemetryMode(nextMode);
+      await TraceRouteAPI.setTelemetryMode(nextMode);
       fetchAllData();
     } catch (e) {
       console.error("Failed to switch pipeline mode:", e);
@@ -172,7 +172,7 @@ export default function TraceLensPage() {
       setActiveTab("overview");
     } else {
       try {
-        const details = await TraceLensAPI.getProject(projectId);
+        const details = await TraceRouteAPI.getProject(projectId);
         setActiveProjectDetails(details);
         setActiveTab("project_dashboard");
       } catch (err) {
@@ -190,7 +190,7 @@ export default function TraceLensPage() {
 
   async function handleReset() {
     try {
-      await TraceLensAPI.resetDemo();
+      await TraceRouteAPI.resetDemo();
       await fetchAllData();
       setActiveTab("overview");
     } catch (err) {
@@ -268,7 +268,7 @@ export default function TraceLensPage() {
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
               <span>
-                <strong>Connecting to TraceLens Backend:</strong> FastAPI server offline or unreachable at{" "}
+                <strong>Connecting to TraceRoute Backend:</strong> FastAPI server offline or unreachable at{" "}
                 <code className="font-mono bg-amber-900/60 px-1.5 py-0.5 rounded text-white">
                   http://127.0.0.1:8000
                 </code>

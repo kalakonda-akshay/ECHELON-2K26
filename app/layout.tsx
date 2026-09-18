@@ -8,7 +8,7 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
-  title: "TraceLens AI — Intelligent Microservice Cascade Observability & Controlled Recovery",
+  title: "TraceRoute AI — Intelligent Microservice Cascade Observability & Controlled Recovery",
   description:
     "Detect. Trace. Explain. Recover. Verify. Deterministic graph reasoning and controlled remediation for distributed systems.",
 };

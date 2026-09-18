@@ -5,15 +5,15 @@ import urllib.request
 import urllib.error
 from typing import Dict, List, Any, Optional, AsyncGenerator
 
-class TraceLensCopilot:
+class TraceRouteCopilot:
     """
-    TraceLens Conversational SRE Copilot (Powered by Google Gemini)
+    TraceRoute Conversational SRE Copilot (Powered by Google Gemini)
     Multi-turn conversational AI grounded in live telemetry, causal graphs, and static project analysis.
     
     Capabilities:
       1. Real token-by-token streaming via SSE (Server-Sent Events).
       2. Multi-turn conversation history tracking with context preservation.
-      3. Structured TraceLens Context Builder (telemetry, root cause, evidence, project analysis).
+      3. Structured TraceRoute Context Builder (telemetry, root cause, evidence, project analysis).
       4. Grounded non-hallucinatory explanations with clear separation between observed data and inferred diagnosis.
       5. Built-in Gemini SRE Knowledge Engine fallback ensuring 100% operational availability anytime.
     """
@@ -54,7 +54,7 @@ class TraceLensCopilot:
             )
 
         context_str = f"""
-Current TraceLens Environment Context:
+Current TraceRoute Environment Context:
 - Operating Mode: {data_mode}
 - Active Incident ID: {inc.get('id', 'None (Nominal Baseline)')}
 - Failure Scenario: {scenario or 'Nominal Baseline'}
@@ -113,14 +113,14 @@ SRE Operational Guidelines:
         if effective_key:
             try:
                 system_instruction = (
-                    "You are TraceLens Copilot, an elite Google Gemini-powered Principal SRE, "
+                    "You are TraceRoute Copilot, an elite Google Gemini-powered Principal SRE, "
                     "Distributed Systems Architect, and Incident Commander. "
                     "You answer any SRE doubt, cascade question, code issue, or reliability query. "
-                    "Always ground answers in the provided TraceLens context. Distinguish between observed telemetry vs inferred diagnosis."
+                    "Always ground answers in the provided TraceRoute context. Distinguish between observed telemetry vs inferred diagnosis."
                 )
                 full_prompt = f"{context.get('prompt_context', '')}\n\n---\nConversation History:\n"
                 for msg in messages[-6:]:
-                    role_label = "User" if msg.get("role") in ["user", "human"] else "TraceLens Copilot"
+                    role_label = "User" if msg.get("role") in ["user", "human"] else "TraceRoute Copilot"
                     full_prompt += f"{role_label}: {msg.get('content', '')}\n"
                 full_prompt += f"\nRespond to the latest question: {last_question}"
 
@@ -156,7 +156,7 @@ SRE Operational Guidelines:
 
         yield f"data: {json.dumps({'type': 'citations', 'citations': response_data['citations']})}\n\n"
         yield f"data: {json.dumps({'type': 'action_links', 'action_links': response_data['actions']})}\n\n"
-        yield f"data: {json.dumps({'type': 'done', 'confidence': 'HIGH', 'model_source': 'TraceLens Gemini SRE Engine (Built-in)'})}\n\n"
+        yield f"data: {json.dumps({'type': 'done', 'confidence': 'HIGH', 'model_source': 'TraceRoute Gemini SRE Engine (Built-in)'})}\n\n"
 
     def _generate_action_links(self, question: str, context: Dict[str, Any]) -> List[Dict[str, str]]:
         q_lower = question.lower()
@@ -209,9 +209,9 @@ SRE Operational Guidelines:
                 "def call_payment_service(order_id: str):\n"
                 "    return http_client.post(f'/payments/{order_id}')\n"
                 "```\n\n"
-                "In TraceLens, API Gateway and Order Service trip their breakers to prevent downstream database timeouts from taking down the customer ingress."
+                "In TraceRoute, API Gateway and Order Service trip their breakers to prevent downstream database timeouts from taking down the customer ingress."
             )
-            citations = ["Pattern: Martin Fowler Circuit Breaker", "TraceLens Gateway Breaker: Enabled", "Fallback: Graceful HTTP 502"]
+            citations = ["Pattern: Martin Fowler Circuit Breaker", "TraceRoute Gateway Breaker: Enabled", "Fallback: Graceful HTTP 502"]
             actions = [{"label": "View Service Topology", "tab": "topology"}]
             return {"answer": ans, "citations": citations, "actions": actions}
 
@@ -286,7 +286,7 @@ SRE Operational Guidelines:
             if any(w in q_lower for w in ["why", "failing", "checkout", "broken", "cause", "diagnos"]):
                 ans = (
                     f"### Root Cause Diagnosis: {initiator}\n\n"
-                    f"TraceLens telemetry and causal graph engines isolate **{initiator}** as the primary initiating failure point with **{score}/100 confidence**.\n\n"
+                    f"TraceRoute telemetry and causal graph engines isolate **{initiator}** as the primary initiating failure point with **{score}/100 confidence**.\n\n"
                     f"#### Failure Propagation Path:\n"
                     f"`{propagation}`\n\n"
                     f"#### Deterministic Evidence Found:\n"
@@ -416,15 +416,15 @@ SRE Operational Guidelines:
         # -------------------------------------------------------------
         if effective_key:
             system_prompt = (
-                "You are TraceLens Copilot, an elite Google Gemini-powered Principal SRE, "
+                "You are TraceRoute Copilot, an elite Google Gemini-powered Principal SRE, "
                 "Distributed Systems Architect, and Incident Commander. "
                 "You provide precise, authoritative, and friendly engineering guidance for any question or doubt. "
                 "Format your answers with clean markdown (bold key points, bullet lists, code blocks where appropriate). "
-                "When referencing current incident telemetry, align with the provided TraceLens cluster context."
+                "When referencing current incident telemetry, align with the provided TraceRoute cluster context."
             )
 
             context_str = f"""
-Current TraceLens Cluster Context:
+Current TraceRoute Cluster Context:
 - Active Incident: {inc.get('id', 'None (Nominal Baseline)')}
 - Scenario: {scenario or 'All Systems Nominal'}
 - System Health: {inc.get('severity', 'HEALTHY')}
@@ -476,12 +476,12 @@ Current TraceLens Cluster Context:
                     "- **CLOSED**: Normal operation. Requests flow through freely.\n"
                     "- **OPEN**: Error rate or latency exceeds threshold (e.g. >50% failure). Calls fail immediately with fallback without waiting for timeouts.\n"
                     "- **HALF-OPEN**: After a cooldown period, a small percentage of trial traffic is let through to check if the downstream service has recovered.\n\n"
-                    "In TraceLens, the API Gateway and Order Service trip their breakers to shield ingress when downstream latencies exceed 2,500ms."
+                    "In TraceRoute, the API Gateway and Order Service trip their breakers to shield ingress when downstream latencies exceed 2,500ms."
                 ),
-                "evidence_citations": ["Pattern: Martin Fowler Circuit Breaker", "TraceLens Gateway Breaker: Enabled", "Fallback: Graceful HTTP 502/504"],
+                "evidence_citations": ["Pattern: Martin Fowler Circuit Breaker", "TraceRoute Gateway Breaker: Enabled", "Fallback: Graceful HTTP 502/504"],
                 "action_links": [{"label": "View Service Topology", "tab": "topology"}],
                 "confidence": "HIGH",
-                "model_source": "TraceLens Gemini SRE Engine"
+                "model_source": "TraceRoute Gemini SRE Engine"
             }
 
         elif any(w in q_lower for w in ["hikaricp", "connection pool", "database pool", "pool exhaustion", "max_connections"]):
@@ -495,12 +495,12 @@ Current TraceLens Cluster Context:
                     "- `maximumPoolSize`: Optimal pool size is often `(core_count * 2) + effective_spindle_count`, not arbitrarily large numbers.\n"
                     "- `connectionTimeout`: Set between 1,000ms and 3,000ms so worker threads fail fast rather than backing up the caller queue.\n"
                     "- `leakDetectionThreshold`: Detect long-running queries holding connections open unnecessarily (e.g., 2,000ms).\n\n"
-                    "In TraceLens `DATABASE_FAILURE`, HikariCP saturated at 100% (150/150), causing Payment Service worker threads to freeze."
+                    "In TraceRoute `DATABASE_FAILURE`, HikariCP saturated at 100% (150/150), causing Payment Service worker threads to freeze."
                 ),
                 "evidence_citations": ["HikariCP Pool: 150/150 (100%)", "Acquisition Timeout: 30000ms", "Metric: connection_utilization_pct"],
                 "action_links": [{"label": "Simulate in SafeOps", "tab": "sandbox"}, {"label": "Why Now? Analysis", "tab": "why_now"}],
                 "confidence": "HIGH",
-                "model_source": "TraceLens Gemini SRE Engine"
+                "model_source": "TraceRoute Gemini SRE Engine"
             }
 
         elif any(w in q_lower for w in ["gc pause", "garbage collection", "jvm", "stop the world", "g1gc", "out of memory"]):
@@ -520,7 +520,7 @@ Current TraceLens Cluster Context:
                 "evidence_citations": ["GC Evacuation: 3840ms Pause", "Heap Saturation: 94.5%", "Caller Symptom: HTTP 504 Timeout"],
                 "action_links": [{"label": "Inspect Blast Radius", "tab": "blast_radius"}],
                 "confidence": "HIGH",
-                "model_source": "TraceLens Gemini SRE Engine"
+                "model_source": "TraceRoute Gemini SRE Engine"
             }
 
         elif any(w in q_lower for w in ["oom", "oomkilled", "exit 137", "memory limit", "kubernetes oom"]):
@@ -538,7 +538,7 @@ Current TraceLens Cluster Context:
                 "evidence_citations": ["Termination Signal: SIGKILL (Exit 137)", "cgroup Memory Ceiling: 512Mi", "Container Status: CrashLoopBackOff"],
                 "action_links": [{"label": "Recovery Playbook", "tab": "sandbox"}],
                 "confidence": "HIGH",
-                "model_source": "TraceLens Gemini SRE Engine"
+                "model_source": "TraceRoute Gemini SRE Engine"
             }
 
         elif any(w in q_lower for w in ["n+1", "unindexed", "slow query", "database index", "explain analyze"]):
@@ -554,7 +554,7 @@ Current TraceLens Cluster Context:
                 "evidence_citations": ["Commit: a8f3b9c (v2.4.1)", "Execution Plan: Seq Scan on payments", "Cost: 42180.00 vs 8.31"],
                 "action_links": [{"label": "View Deployments", "tab": "deployments"}],
                 "confidence": "HIGH",
-                "model_source": "TraceLens Gemini SRE Engine"
+                "model_source": "TraceRoute Gemini SRE Engine"
             }
 
         elif any(w in q_lower for w in ["sli", "slo", "sla", "error budget"]):
@@ -570,7 +570,7 @@ Current TraceLens Cluster Context:
                 "evidence_citations": ["Cluster SLO Target: <100ms p95", "Availability Target: 99.9%", "Error Budget: 100% Intact"],
                 "action_links": [{"label": "Command Center", "tab": "overview"}],
                 "confidence": "HIGH",
-                "model_source": "TraceLens Gemini SRE Engine"
+                "model_source": "TraceRoute Gemini SRE Engine"
             }
 
         elif any(w in q_lower for w in ["opentelemetry", "otel", "instrumentation", "tracing", "spans"]):
@@ -583,12 +583,12 @@ Current TraceLens Cluster Context:
                     "- **Trace**: Represents the end-to-end journey of a request across all microservices.\n"
                     "- **Span**: Represents a single unit of work within a service (e.g., handling an HTTP route or executing a SQL query).\n"
                     "- **Context Propagation**: Passing headers (e.g., `traceparent: 00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01`) over HTTP/gRPC so downstream spans connect to the parent trace.\n\n"
-                    "TraceLens auto-generates turnkey Python and Node.js OpenTelemetry snippets in the **Connect Project** tab."
+                    "TraceRoute auto-generates turnkey Python and Node.js OpenTelemetry snippets in the **Connect Project** tab."
                 ),
                 "evidence_citations": ["W3C TraceContext Standard", "Turnkey Snippet Generator: Available", "Observability Readiness: 5 Pillars"],
                 "action_links": [{"label": "Connect Project", "tab": "connect_project"}],
                 "confidence": "HIGH",
-                "model_source": "TraceLens Gemini SRE Engine"
+                "model_source": "TraceRoute Gemini SRE Engine"
             }
 
         # B. Cluster Nominal State (No Active Incident)
@@ -605,7 +605,7 @@ Current TraceLens Cluster Context:
                 "evidence_citations": ["Cluster Health: 100% HEALTHY", "Error Rate: 0.0%", "P95 Latency: Nominal (<24ms)"],
                 "action_links": [{"label": "View Service Topology", "tab": "topology"}, {"label": "Trigger Demo Incident", "tab": "demo_lab"}],
                 "confidence": "HIGH",
-                "model_source": "TraceLens Gemini SRE Engine"
+                "model_source": "TraceRoute Gemini SRE Engine"
             }
 
         # C. Incident-Specific Queries (Active Incident Running)
@@ -634,7 +634,7 @@ Current TraceLens Cluster Context:
                 f"**Primary Trigger:** {trigger}\n\n"
                 f"**Contributing Conditions:**\n"
                 f"{cond_bullets}\n\n"
-                f"TraceLens distinguishes the root initiating component from the temporal tipping point that triggered the failure at this exact timestamp."
+                f"TraceRoute distinguishes the root initiating component from the temporal tipping point that triggered the failure at this exact timestamp."
             )
             citations = [c['description'] for c in why_now.get("contributing_conditions", [])[:3]]
             actions = [{"label": "Inspect Why Now?", "tab": "why_now"}, {"label": "View Deployments", "tab": "deployments"}]
@@ -677,7 +677,7 @@ Current TraceLens Cluster Context:
                 similarity = top_match.get("similarity_score", top_match.get("similarity_pct", 92))
                 answer = (
                     f"### Historical Incident Match Found\n\n"
-                    f"TraceLens identified **Incident #{top_match.get('id', 'INC-1021')}** in SQLite memory with **{similarity}% similarity**.\n\n"
+                    f"TraceRoute identified **Incident #{top_match.get('id', 'INC-1021')}** in SQLite memory with **{similarity}% similarity**.\n\n"
                     f"- **Historical Root Cause:** {top_match.get('root_cause', initiator)}\n"
                     f"- **Effective Remediation:** {top_match.get('recovery_action', 'Connection pool flush and reset')}\n"
                     f"- **Outcome:** {top_match.get('verification_result', 'RECOVERY VERIFIED')}"
@@ -708,7 +708,7 @@ Current TraceLens Cluster Context:
                 f"- **Execution Command:** `{command}`\n\n"
                 f"**Pre-flight Requirements:**\n"
                 + "\n".join([f"- {p}" for p in (prereqs if isinstance(prereqs, list) else [str(prereqs)])]) + "\n\n"
-                f"TraceLens recommends simulating this action in the SafeOps Digital Twin to verify metric recovery before approving live execution."
+                f"TraceRoute recommends simulating this action in the SafeOps Digital Twin to verify metric recovery before approving live execution."
             )
             citations = [
                 f"Automated Command: {command}",
@@ -720,7 +720,7 @@ Current TraceLens Cluster Context:
         # General Fallback Answer for Any Doubt
         else:
             answer = (
-                f"### TraceLens SRE Analysis\n\n"
+                f"### TraceRoute SRE Analysis\n\n"
                 f"**Regarding your question:** *\"{question}\"*\n\n"
                 f"In the context of the active cluster state, **{initiator}** is currently degraded ({score}/100 confidence) "
                 f"propagating errors across `{propagation}`.\n\n"
@@ -738,7 +738,7 @@ Current TraceLens Cluster Context:
             "evidence_citations": citations,
             "action_links": actions,
             "confidence": "HIGH",
-            "model_source": "TraceLens Gemini SRE Engine"
+            "model_source": "TraceRoute Gemini SRE Engine"
         }
 
-copilot_engine = TraceLensCopilot()
+copilot_engine = TraceRouteCopilot()

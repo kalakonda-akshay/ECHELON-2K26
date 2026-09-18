@@ -22,7 +22,7 @@ export interface TopologyNode {
   id: string;
   name: string;
   type: "gateway" | "service" | "database";
-  tier: "edge" | "application" | "data";
+  tier: "edge" | "gateway" | "application" | "data";
   runtime: string;
   port: number;
   x: number;
@@ -412,18 +412,19 @@ export interface FeedbackStats {
 export type ProjectCapabilityLevel =
   | "LEVEL 1: STATIC PROJECT ANALYSIS"
   | "LEVEL 2: LIVE OBSERVABILITY (TELEMETRY CONNECTED)"
+  | "LEVEL 2: ACTIVE REPAIR (VERIFIED REMEDIATION)"
   | "LEVEL 3: CONTROLLED RECOVERY SANDBOX";
 
 export interface ProjectSummary {
   id: string;
   name: string;
-  type: "DEMO" | "SAMPLE_PROJECT" | "USER_UPLOAD";
+  type: "DEMO" | "SAMPLE_PROJECT" | "USER_UPLOAD" | "UPLOADED_PROJECT";
   status: "LIVE_SIMULATION" | "STATIC_ANALYSIS" | "INTEGRATION_REQUIRED" | "CONNECTED" | "MONITORING";
-  architecture_type: "MICROSERVICES" | "MONOLITH" | "BACKEND_SERVICE" | "EVENT_DRIVEN";
+  architecture_type?: "MICROSERVICES" | "MONOLITH" | "BACKEND_SERVICE" | "EVENT_DRIVEN" | "DISTRIBUTED_COMPOSE";
   services_count: number;
   routes_count: number;
   readiness_pct: number;
-  description: string;
+  description?: string;
   is_active_demo?: boolean;
 }
 
@@ -436,7 +437,7 @@ export interface ReadinessItem {
 
 export interface ObservabilityReadiness {
   readiness_percentage: number;
-  status_label: "READY FOR TRACELENS" | "INTEGRATION REQUIRED" | "STATIC ANALYSIS ONLY";
+  status_label: "READY FOR TRACEROUTE" | "INTEGRATION REQUIRED" | "STATIC ANALYSIS ONLY" | "PRODUCTION READY" | "EARLY ADOPTION";
   missing_count: number;
   checklist: ReadinessItem[];
 }
@@ -446,7 +447,7 @@ export interface DiscoveredService {
   name: string;
   framework: string;
   port?: number;
-  tier: "gateway" | "application" | "data";
+  tier: "edge" | "gateway" | "application" | "data";
   language: string;
   description?: string;
   path?: string;
@@ -477,21 +478,27 @@ export interface IntegrationFileSnippet {
 }
 
 export interface IntegrationPlan {
-  frameworks_detected: string[];
-  languages_detected: string[];
-  target_services: Array<{ id: string }>;
-  suggested_package_managers: string[];
-  install_command: string;
-  files: IntegrationFileSnippet[];
-  next_steps: string[];
+  project_id?: string;
+  project_name?: string;
+  steps?: Array<{ step_number: number; title: string; description: string; command?: string; verification?: string }>;
+  snippets?: any[];
+  collector_endpoint?: string;
+  estimated_setup_minutes?: number;
+  frameworks_detected?: string[];
+  languages_detected?: string[];
+  target_services?: Array<{ id: string }>;
+  suggested_package_managers?: string[];
+  install_command?: string;
+  files?: IntegrationFileSnippet[];
+  next_steps?: string[];
 }
 
 export interface ProjectDetails {
   id: string;
   name: string;
-  type: "DEMO" | "SAMPLE_PROJECT" | "USER_UPLOAD";
+  type: "DEMO" | "SAMPLE_PROJECT" | "USER_UPLOAD" | "UPLOADED_PROJECT";
   status: string;
-  architecture_type: "MICROSERVICES" | "MONOLITH" | "BACKEND_SERVICE" | "EVENT_DRIVEN";
+  architecture_type: "MICROSERVICES" | "MONOLITH" | "BACKEND_SERVICE" | "EVENT_DRIVEN" | "DISTRIBUTED_COMPOSE";
   languages: string[];
   frameworks: string[];
   databases: string[];

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { TraceLensAPI } from "./api";
+import { TraceRouteAPI } from "./api";
 import { SystemStatus } from "./types";
 import {
   Activity,
@@ -43,7 +43,7 @@ export function DevDiagnosticsPanel({
     const nextMode = currentMode === "DEMO" ? "LIVE" : "DEMO";
     try {
       setIsSending(true);
-      await TraceLensAPI.setTelemetryMode(nextMode);
+      await TraceRouteAPI.setTelemetryMode(nextMode);
       setFeedback(`Switched mode to ${nextMode}`);
       onRefreshData?.();
     } catch (e: any) {
@@ -56,7 +56,7 @@ export function DevDiagnosticsPanel({
   const handleSendSpike = async () => {
     try {
       setIsSending(true);
-      await TraceLensAPI.ingestTelemetry({
+      await TraceRouteAPI.ingestTelemetry({
         service: "payment-service",
         latency: 480.0,
         error_rate: 22.5,
@@ -75,7 +75,7 @@ export function DevDiagnosticsPanel({
   const handleSendRecovery = async () => {
     try {
       setIsSending(true);
-      await TraceLensAPI.ingestTelemetry({
+      await TraceRouteAPI.ingestTelemetry({
         service: "payment-service",
         latency: 22.0,
         error_rate: 0.0,

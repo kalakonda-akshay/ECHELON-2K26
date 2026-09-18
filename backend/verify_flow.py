@@ -22,7 +22,7 @@ def get(path):
 
 def test_full_pipeline():
     print("==================================================")
-    print("TraceLens AI — End-to-End System Verification")
+    print("TraceRoute AI — End-to-End System Verification")
     print("==================================================")
 
     # 1. Baseline status
@@ -68,7 +68,7 @@ def test_full_pipeline():
     print("[STEP 6] Simulating SRE Human Approval...")
     appr = post("/api/recovery/approve", {
         "action_id": action_id,
-        "approved_by": "lead-sre@tracelens.internal"
+        "approved_by": "lead-sre@traceroute.internal"
     })
     print(f"         Approval response: {appr.get('message')}")
     assert appr.get("success") is True, "Approval should succeed"

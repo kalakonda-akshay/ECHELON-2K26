@@ -10,7 +10,7 @@ from backend.secure_extractor import secure_extractor
 
 class ProjectManager:
     """
-    Manages multi-project lifecycle states in TraceLens AI:
+    Manages multi-project lifecycle states in TraceRoute AI:
       - Mode 1: FoodDelivery-Demo (Built-in simulated microservices)
       - Mode 2: Uploaded/Connected User Projects
     Provides 3 bundled test fixtures and normalizes ingested external telemetry.
@@ -45,7 +45,7 @@ class ProjectManager:
                     {"item": "Microservice Boundaries Discovered", "status": "PASSED", "score": 20, "details": "5 microservices cataloged (Gateway, Order, Payment, Inventory, Postgres)."},
                     {"item": "API Routes & Endpoints Mapped", "status": "PASSED", "score": 20, "details": "18 HTTP routes identified across service handlers."},
                     {"item": "Container Topology Defined", "status": "PASSED", "score": 15, "details": "docker-compose.yml defines multi-container network links."},
-                    {"item": "Distributed Tracing Configured", "status": "ACTION_REQUIRED", "score": 0, "details": "OpenTelemetry SDK not detected. TraceLens integration required."},
+                    {"item": "Distributed Tracing Configured", "status": "ACTION_REQUIRED", "score": 0, "details": "OpenTelemetry SDK not detected. TraceRoute integration required."},
                     {"item": "Metrics Exporter Active", "status": "ACTION_REQUIRED", "score": 0, "details": "Prometheus exporter not detected."},
                     {"item": "Liveness / Health Probe Endpoint", "status": "PASSED", "score": 10, "details": "Discovered standard /health endpoint."}
                 ]
@@ -363,7 +363,7 @@ class ProjectManager:
     def ingest_telemetry(self, project_id: str, payload: Dict[str, Any]) -> Dict[str, Any]:
         """
         Accepts external telemetry (logs, metrics, traces, health) for connected projects,
-        normalizes it into TraceLens unified model, and updates the project status.
+        normalizes it into TraceRoute unified model, and updates the project status.
         """
         proj = self.get_project(project_id)
         if not proj:
@@ -393,7 +393,7 @@ class ProjectManager:
             "status": "INGESTED",
             "project_id": project_id,
             "project_status": "CONNECTED",
-            "message": "Telemetry received and normalized into TraceLens intelligence pipeline."
+            "message": "Telemetry received and normalized into TraceRoute intelligence pipeline."
         }
 
     def delete_project(self, project_id: str) -> Dict[str, Any]:

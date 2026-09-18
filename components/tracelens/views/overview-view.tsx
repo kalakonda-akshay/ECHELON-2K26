@@ -437,7 +437,7 @@ export function OverviewView({
 
       {/* 2. Main Area: 6-Card Live Topology (8 cols) & Active Incident Panel (4 cols) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* TraceLens AI Decision Room (8 cols) */}
+        {/* TraceRoute AI Decision Room (8 cols) */}
         <div className="lg:col-span-8 bg-[#10172A] border border-[#26344D] rounded-xl p-5 backdrop-blur flex flex-col justify-between space-y-4 shadow-sm">
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#26344D] pb-3 gap-2">
@@ -445,7 +445,7 @@ export function OverviewView({
               <div className="flex items-center gap-2">
                 <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#F8FAFC] flex items-center gap-2">
                   <Cpu className="w-4 h-4 text-[#8B5CF6]" />
-                  TRACELENS AI DECISION ROOM
+                  TRACEROUTE AI DECISION ROOM
                 </span>
                 <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-emerald-950/60 text-[#22C55E] border border-emerald-800/60">
                   <span className="w-1.5 h-1.5 rounded-full bg-[#22C55E] animate-pulse" />
@@ -595,7 +595,7 @@ export function OverviewView({
                     </span>
                   </div>
                   <span className="text-[10px] font-mono text-[#94A3B8]">
-                    What TraceLens understands right now
+                    What TraceRoute understands right now
                   </span>
                 </div>
 
@@ -843,7 +843,7 @@ export function OverviewView({
                     </span>
                   </div>
                   <span className="text-[10px] font-mono text-[#94A3B8]">
-                    Recommended by TraceLens
+                    Recommended by TraceRoute
                   </span>
                 </div>
 
