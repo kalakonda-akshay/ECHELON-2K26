@@ -589,11 +589,15 @@ async def copilot_chat_stream(req: CopilotChatStreamRequest):
     symptom = inc.get("symptom", "502 Bad Gateway")
     similar = incident_memory_engine.find_similar(scenario, symptom, initiator)
 
-    # Optional project context
+    # Optional project and repair context
     project_details = None
+    repair_issues = None
+    repair_health = None
     if req.project_id:
         try:
             project_details = project_manager.get_project(req.project_id)
+            repair_issues = repair_engine.analyze_project_issues(req.project_id)
+            repair_health = repair_engine.get_project_health(req.project_id)
         except Exception:
             pass
 
@@ -605,6 +609,8 @@ async def copilot_chat_stream(req: CopilotChatStreamRequest):
         recovery=recovery,
         similar_incidents=similar,
         project_details=project_details,
+        repair_issues=repair_issues,
+        repair_health=repair_health,
         data_mode=simulator.data_mode
     )
 

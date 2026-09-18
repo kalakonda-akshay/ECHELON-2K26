@@ -58,6 +58,8 @@ interface ChatMessage {
 const QUICK_PROMPTS = [
   "Why is checkout failing right now?",
   "What changed before the incident?",
+  "Explain Project Repair Lab Level 1 vs 2 vs 3",
+  "How does TraceRoute isolate patches safely?",
   "Explain Circuit Breakers in microservices",
   "What is HikariCP connection pool saturation?",
   "What causes OOMKilled (Exit 137)?",

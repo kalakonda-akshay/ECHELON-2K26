@@ -27,6 +27,8 @@ class TraceRouteCopilot:
         recovery: Dict[str, Any],
         similar_incidents: List[Dict[str, Any]],
         project_details: Optional[Dict[str, Any]] = None,
+        repair_issues: Optional[List[Dict[str, Any]]] = None,
+        repair_health: Optional[Dict[str, Any]] = None,
         data_mode: str = "DEMO"
     ) -> Dict[str, Any]:
         initiator = diagnosis.get("initiating_service_name", diagnosis.get("initiating_service", "None (Baseline)"))
@@ -53,6 +55,20 @@ class TraceRouteCopilot:
                 f"- Mapped Routes: {routes_count}\n"
             )
 
+        repair_info = ""
+        if repair_issues:
+            issues_summary = "\n".join([
+                f"  * [{i.get('level')}] {i.get('title')} ({i.get('file_path')}:{i.get('line_number', 1)}) - {i.get('rationale')}"
+                for i in repair_issues[:6]
+            ])
+            health_score = repair_health.get('health_score', 100) if repair_health else 100
+            readiness = repair_health.get('build_readiness', 'UNKNOWN') if repair_health else 'UNKNOWN'
+            repair_info = (
+                f"\nProject Repair Lab Context:\n"
+                f"- Health Score: {health_score}/100 | Build Readiness: {readiness}\n"
+                f"- Detected Issues:\n{issues_summary}\n"
+            )
+
         context_str = f"""
 Current TraceRoute Environment Context:
 - Operating Mode: {data_mode}
@@ -65,7 +81,7 @@ Current TraceRoute Environment Context:
 - Deterministic Evidence: {'; '.join(evidence[:4]) if evidence else 'All signals nominal'}
 - Contributing Trigger (Why Now): {why_now.get('primary_trigger', 'None active')}
 - Blast Radius: {blast_radius.get('affected_count', 0)} of {blast_radius.get('total_services', 6)} services affected
-{proj_info}
+{proj_info}{repair_info}
 SRE Operational Guidelines:
 1. Distinguish strictly between OBSERVED TELEMETRY and INFERRED DIAGNOSIS.
 2. Ground all incident explanations in the telemetry, causal graph, and evidence provided above.
@@ -82,7 +98,9 @@ SRE Operational Guidelines:
             "symptom": symptom,
             "scenario": scenario,
             "recovery": recovery,
-            "why_now": why_now
+            "why_now": why_now,
+            "repair_issues": repair_issues or [],
+            "repair_health": repair_health or {}
         }
 
     async def stream_chat(
@@ -266,6 +284,40 @@ SRE Operational Guidelines:
             )
             citations = ["Cluster Target SLO: 99.9%", "P95 Target: < 100ms", "Error Budget: Monitored"]
             actions = [{"label": "Command Center", "tab": "overview"}]
+            return {"answer": ans, "citations": citations, "actions": actions}
+
+        if any(w in q_lower for w in ["repair", "level 1", "level 2", "level 3", "make it run", "patch", "safe auto-fix", "review required", "trace to code"]):
+            r_issues = context.get("repair_issues", [])
+            r_health = context.get("repair_health", {})
+            score_val = r_health.get("health_score", 85)
+            readiness_val = r_health.get("build_readiness", "WARNING")
+
+            ans = (
+                "### TraceRoute Project Repair Lab Architecture\n\n"
+                "TraceRoute's **Project Repair Lab** enables pre-flight code reliability and non-destructive automated remediation before services cause production incidents.\n\n"
+                "#### 3-Tier Repair Classification:\n"
+                "- **Level 1 (Safe Auto-Fix)**: Deterministic, highly reversible repairs with zero semantic ambiguity (e.g., adding missing pinned packages to `requirements.txt`, setting safe fallback defaults on `os.getenv`). Approved for automated application via **Make It Run**.\n"
+                "- **Level 2 (Review Required)**: Semantic adjustments requiring human engineer sign-off (e.g., cross-service API path discrepancies like `/api/payments` vs `/api/payment`, or missing health-check endpoints).\n"
+                "- **Level 3 (Engineer Required)**: Ambiguous business logic, distributed race conditions, or core data model flaws. Flagged with diagnostic rationale for engineer investigation without making hazardous auto-fixes.\n\n"
+                "#### Safety & Isolation Guarantees:\n"
+                "1. **Isolated Working Copy**: The uploaded source archive is cloned to an isolated workspace (`working_copy`). Original source files are never mutated.\n"
+                "2. **AST & Manifest Validation**: Patches undergo fast static AST syntax parsing, YAML/JSON validation, and route consistency checks prior to acceptance.\n"
+                "3. **Instant 1-Click Rollback**: Every patch records prior file snapshots in a rollback history stack, allowing instant one-click reversal."
+            )
+            if r_issues:
+                issue_bullets = "\n".join([f"- **[{i.get('level')}]** `{i.get('file_path')}`: {i.get('title')}" for i in r_issues[:4]])
+                ans += f"\n\n#### Current Project Status:\n- **Health Score**: `{score_val}/100` | **Readiness**: `{readiness_val}`\n- **Detected Issues**:\n{issue_bullets}"
+
+            citations = [
+                f"Health Score: {score_val}/100",
+                f"Build Readiness: {readiness_val}",
+                "Safety: Zero-Touch Original Workspace",
+                "Validation: Python AST + Route Parity"
+            ]
+            actions = [
+                {"label": "Open Project Repair Lab", "tab": "repair_lab"},
+                {"label": "View Incident Root Cause", "tab": "root_cause"}
+            ]
             return {"answer": ans, "citations": citations, "actions": actions}
 
         # 2. Follow-up handling in multi-turn conversation
