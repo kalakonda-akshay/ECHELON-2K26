@@ -803,7 +803,7 @@ export function RepairLabView({
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div className="flex items-center gap-2">
                 <FileText className="w-5 h-5 text-indigo-400" />
-                <h3 className="text-sm font-bold text-white font-mono">TRACELENS_REPAIR_REPORT.md</h3>
+                <h3 className="text-sm font-bold text-white font-mono">TRACEROUTE_REPAIR_REPORT.md</h3>
               </div>
               <button onClick={() => setIsReportModalOpen(false)} className="p-1 rounded-lg hover:bg-slate-800 text-slate-400">
                 <X className="w-5 h-5" />
@@ -811,7 +811,7 @@ export function RepairLabView({
             </div>
 
             <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 text-xs font-mono text-slate-200 whitespace-pre-wrap leading-relaxed">
-{`# TraceLens Repair Report
+{`# TraceRoute AI Repair Report
 
 Project:
 ${projectName}
@@ -907,7 +907,7 @@ The original project was not modified.`}
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div className="flex items-center gap-2">
                 <Radio className="w-5 h-5 text-sky-400" />
-                <h3 className="text-sm font-bold text-white font-mono">Connect Repaired Project to TraceRoute</h3>
+                <h3 className="text-sm font-bold text-white font-mono">Connect Repaired Project to TraceRoute AI</h3>
               </div>
               <button onClick={() => setIsConnectModalOpen(false)} className="p-1 rounded-lg hover:bg-slate-800 text-slate-400">
                 <X className="w-5 h-5" />
