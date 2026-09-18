@@ -34,3 +34,5 @@ __pycache__/
 
 .vercel
 *.db
+traceroute_workspaces/
+scratch/

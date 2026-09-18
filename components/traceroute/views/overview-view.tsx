@@ -32,6 +32,7 @@ import {
   ShieldAlert,
   Sliders,
   Sparkles,
+  Wrench,
   Zap
 } from "lucide-react";
 
@@ -1117,13 +1118,23 @@ export function OverviewView({
               <span>Investigate Adaptive Steps</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
-            <button
-              onClick={() => onNavigate("sandbox")}
-              className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-lg bg-tl-elevated hover:bg-slate-700 text-slate-200 text-xs font-semibold font-mono border border-tl-border transition"
-            >
-              <Sliders className="w-3.5 h-3.5 text-tl-green" />
-              <span>Simulate Recovery in SafeOps</span>
-            </button>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                onClick={() => onNavigate("repair_lab")}
+                className="flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-lg bg-purple-950/40 hover:bg-purple-900/50 text-purple-300 text-xs font-semibold font-mono border border-purple-500/30 transition shadow-sm"
+                title="Trace runtime failure back to source repository in Project Repair Lab"
+              >
+                <Wrench className="w-3.5 h-3.5 text-purple-400" />
+                <span>Trace to Code</span>
+              </button>
+              <button
+                onClick={() => onNavigate("sandbox")}
+                className="flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-lg bg-tl-elevated hover:bg-slate-700 text-slate-200 text-xs font-semibold font-mono border border-tl-border transition"
+              >
+                <Sliders className="w-3.5 h-3.5 text-tl-green" />
+                <span>SafeOps</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>

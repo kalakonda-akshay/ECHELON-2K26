@@ -20,7 +20,7 @@ for env_file in [Path(".env.local"), Path(".env"), Path(__file__).resolve().pare
 import asyncio
 import json
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, Response
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Dict, List, Any, Optional
@@ -38,6 +38,7 @@ from backend.early_warning import early_warning_engine
 from backend.incident_memory import incident_memory_engine
 from backend.why_now_engine import why_now_engine
 from backend.copilot_engine import copilot_engine
+from backend.repair_engine import repair_engine
 
 init_db()
 
@@ -734,6 +735,77 @@ def delete_project(project_id: str):
     if not success:
         raise HTTPException(status_code=400, detail="Cannot delete demo or system fixture.")
     return {"status": "DELETED", "project_id": project_id}
+
+# =========================================================================
+# Project Repair Lab Routes
+# =========================================================================
+
+class PatchRequest(BaseModel):
+    issue_id: str
+    custom_patch: Optional[str] = None
+
+class RollbackRequest(BaseModel):
+    issue_id: str
+
+@app.get("/api/projects/{project_id}/repair/issues")
+def get_repair_issues(project_id: str):
+    """Detects and returns all repairable issues, health score, and classification."""
+    proj = project_manager.get_project(project_id)
+    proj_name = proj["name"] if proj else project_id
+    proj_dir = project_manager.get_project_dir(project_id)
+    return repair_engine.analyze_project_issues(project_id, proj_dir, proj_name)
+
+@app.post("/api/projects/{project_id}/repair/apply-patch")
+def apply_repair_patch(project_id: str, req: PatchRequest):
+    """Applies an approved patch to the isolated working copy and validates."""
+    try:
+        return repair_engine.apply_patch(project_id, req.issue_id, req.custom_patch)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.post("/api/projects/{project_id}/repair/rollback")
+def rollback_repair_patch(project_id: str, req: RollbackRequest):
+    """Rolls back an applied patch in the working copy."""
+    try:
+        return repair_engine.rollback_patch(project_id, req.issue_id)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.post("/api/projects/{project_id}/repair/make-it-run")
+def make_it_run_loop(project_id: str):
+    """Automated iterative repair loop applying Level 1 & approved Level 2 fixes."""
+    try:
+        proj = project_manager.get_project(project_id)
+        proj_name = proj["name"] if proj else project_id
+        proj_dir = project_manager.get_project_dir(project_id)
+        repair_engine.analyze_project_issues(project_id, proj_dir, proj_name)
+        return repair_engine.make_it_run(project_id)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.get("/api/projects/{project_id}/repair/export")
+def export_repaired_project(project_id: str):
+    """Exports the repaired project working copy as a downloadable ZIP with TRACEROUTE_REPAIR_REPORT.md."""
+    try:
+        proj = project_manager.get_project(project_id)
+        proj_name = proj["name"] if proj else project_id
+        zip_buf = repair_engine.export_repaired_zip(project_id)
+        filename = f"{proj_name.lower().replace(' ', '-')}-traceroute-repaired.zip"
+        return Response(
+            content=zip_buf.getvalue(),
+            media_type="application/zip",
+            headers={"Content-Disposition": f'attachment; filename="{filename}"'}
+        )
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.get("/api/projects/{project_id}/trace-to-code/{incident_id}")
+def trace_incident_to_code(project_id: str, incident_id: str):
+    """Correlates a runtime incident root-cause back to specific source code and config files."""
+    scenario = (simulator.active_scenario or "DATABASE_FAILURE").upper()
+    incident_name = "Database Connection Pool Exhaustion" if "DATABASE" in scenario else "Payment Gateway HTTP 504 Timeout" if "PAYMENT" in scenario else "Order Service Memory Leak"
+    root_service = "postgres-db" if "DATABASE" in scenario else "payment-service" if "PAYMENT" in scenario else "order-service"
+    return repair_engine.trace_incident_to_code(incident_id, incident_name, root_service)
 
 if __name__ == "__main__":
     import uvicorn

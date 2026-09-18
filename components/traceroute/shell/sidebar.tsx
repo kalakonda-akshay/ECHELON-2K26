@@ -22,7 +22,8 @@ import {
   FolderGit2,
   Clock,
   Bot,
-  Film
+  Film,
+  Wrench
 } from "lucide-react";
 import { SystemStatus, EarlyWarningData } from "../types";
 
@@ -280,6 +281,7 @@ export function Sidebar({
               <span>3. Recover</span>
             </div>
             {[
+              { id: "repair_lab", label: "Project Repair Lab", icon: Wrench, badge: "SANDBOX", badgeColor: "bg-[#22D3EE]/20 text-[#22D3EE] border-[#22D3EE]/40" },
               { id: "sandbox", label: "SafeOps Sandbox", icon: Sliders, badge: "Digital Twin", badgeColor: "bg-[#22C55E]/20 text-[#22C55E] border-[#22C55E]/40" },
               { id: "memory", label: "Incident Memory", icon: History },
               { id: "demo_lab", label: "Demo Lab & Scenarios", icon: PlayCircle, badge: "Auto Demo", badgeColor: "bg-[#F59E0B]/20 text-[#F59E0B] border-[#F59E0B]/40" },

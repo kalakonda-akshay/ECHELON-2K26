@@ -254,6 +254,11 @@ class ProjectManager:
 
         return projects_list
 
+    def get_project_dir(self, project_id: str) -> str:
+        p_dir = os.path.join(secure_extractor.base_workspace_dir, project_id)
+        os.makedirs(p_dir, exist_ok=True)
+        return p_dir
+
     def get_project(self, project_id: str) -> Optional[Dict[str, Any]]:
         """Returns complete project details, architecture, topology, and readiness."""
         if project_id in self._in_memory_projects:

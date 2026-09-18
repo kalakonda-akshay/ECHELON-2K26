@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React from "react";
 import { Diagnosis } from "../types";
@@ -13,7 +13,8 @@ import {
   Server,
   ShieldAlert,
   Info,
-  ExternalLink
+  ExternalLink,
+  Code
 } from "lucide-react";
 
 interface RootCauseViewProps {
@@ -282,13 +283,23 @@ export function RootCauseView({ diagnosis, onNavigate }: RootCauseViewProps) {
             </div>
           </div>
 
-          <button
-            onClick={() => onNavigate("recovery")}
-            className="w-full py-2.5 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-semibold text-xs flex items-center justify-center gap-2 transition shadow-lg shadow-cyan-600/20"
-          >
-            <span>Proceed to Recovery & Verification</span>
-            <ArrowRight className="w-4 h-4" />
-          </button>
+          <div className="flex items-center gap-2 pt-1">
+            <button
+              onClick={() => onNavigate("repair_lab")}
+              className="flex-1 py-2.5 rounded-xl bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/40 text-purple-300 font-semibold text-xs flex items-center justify-center gap-2 transition shadow-lg shadow-purple-600/10"
+              title="Trace runtime failure back to source code repository and review patch in Project Repair Lab"
+            >
+              <Code className="w-4 h-4 text-purple-400" />
+              <span>Trace to Code</span>
+            </button>
+            <button
+              onClick={() => onNavigate("recovery")}
+              className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-semibold text-xs flex items-center justify-center gap-2 transition shadow-lg shadow-cyan-600/20"
+            >
+              <span>Proceed to SafeOps</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       </div>
     </div>

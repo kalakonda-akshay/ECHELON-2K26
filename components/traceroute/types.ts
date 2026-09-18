@@ -596,3 +596,110 @@ export interface ChangeAnalysisResult {
   impacted_services: string[];
   recommendations: string[];
 }
+
+// =========================================================================
+// Project Repair Lab Types
+// =========================================================================
+
+export type RepairCategory =
+  | "SYNTAX_BUILD"
+  | "DEPENDENCIES"
+  | "CONFIGURATION"
+  | "API_ROUTING"
+  | "DATABASE"
+  | "DOCKER"
+  | "OBSERVABILITY"
+  | "CODE_QUALITY";
+
+export type RepairSeverity = "CRITICAL" | "HIGH" | "MEDIUM" | "LOW";
+
+export type RepairabilityLevel = "AUTO_FIXABLE" | "REVIEW_REQUIRED" | "MANUAL";
+
+export interface ProjectRepairIssue {
+  id: string;
+  title: string;
+  file: string;
+  line: number;
+  symbol: string;
+  category: RepairCategory;
+  severity: RepairSeverity;
+  confidence: "HIGH" | "MEDIUM" | "LOW";
+  repairability: RepairabilityLevel;
+  evidence: string;
+  current_code: string;
+  proposed_code: string;
+  diff: string;
+  why_this_change: string;
+  risk: "LOW" | "MEDIUM" | "HIGH";
+  validation_method: string;
+  affected_services: string[];
+  applied: boolean;
+  validation_passed?: boolean | null;
+}
+
+export interface BeforeAfterMetrics {
+  health_score_before: number;
+  health_score_after: number;
+  build_before: "PASSED" | "WARNING" | "FAILED";
+  build_after: "PASSED" | "WARNING" | "FAILED";
+  issues_before: number;
+  issues_after: number;
+  observability_before: "READY" | "PARTIAL" | "MISSING";
+  observability_after: "READY" | "PARTIAL" | "MISSING";
+}
+
+export interface ProjectHealthReport {
+  project_id: string;
+  project_name: string;
+  working_copy_dir?: string;
+  health_score: number;
+  build_readiness: "PASSED" | "WARNING" | "FAILED";
+  total_issues: number;
+  auto_fixable_count: number;
+  review_required_count: number;
+  manual_count: number;
+  validation_status: "PASSED" | "FAILED" | "PENDING";
+  issues: ProjectRepairIssue[];
+  patch_history?: Array<{
+    issue_id: string;
+    file: string;
+    timestamp: string;
+    diff: string;
+    validation_passed: boolean;
+  }>;
+  before_after: BeforeAfterMetrics;
+}
+
+export interface MakeItRunStep {
+  step: string;
+  title: string;
+  status: "PASSED" | "WARNING" | "FAILED" | "COMPLETED";
+  issue_id?: string;
+  file?: string;
+}
+
+export interface MakeItRunResult {
+  outcome: string;
+  applied_fixes_count: number;
+  applied_fixes: string[];
+  remaining_issues_count: number;
+  steps: MakeItRunStep[];
+  final_validation: {
+    validation_passed: boolean;
+    timestamp: string;
+    checks: Array<{ type: string; status: string; message: string; file?: string }>;
+  };
+  state: ProjectHealthReport;
+}
+
+export interface TraceToCodeResult {
+  incident_id: string;
+  incident_name: string;
+  root_cause_service: string;
+  file: string;
+  line: number;
+  symbol: string;
+  suspected_cause: string;
+  relevant_files: Array<{ file: string; lines: string; type: string }>;
+  recommended_fix: string;
+}

@@ -32,6 +32,7 @@ import { ProjectDashboardView } from "@/components/traceroute/views/project-dash
 import { WhyNowView } from "@/components/traceroute/views/why-now-view";
 import { CopilotView } from "@/components/traceroute/views/copilot-view";
 import { ReplayView } from "@/components/traceroute/views/replay-view";
+import { RepairLabView } from "@/components/traceroute/views/repair-lab-view";
 import { ProjectSummary, ProjectDetails } from "@/components/traceroute/types";
 import { DevDiagnosticsPanel } from "@/components/traceroute/dev-diagnostics-panel";
 import { RefreshCw } from "lucide-react";
@@ -356,6 +357,15 @@ export default function TraceRoutePage() {
               blastRadius={blastRadius}
               status={status}
               onNavigate={setActiveTab}
+            />
+          )}
+
+          {activeTab === "repair_lab" && (
+            <RepairLabView
+              projectId={activeProjectId}
+              projectName={activeProjectDetails?.name || "FoodBridge Application"}
+              onNavigate={setActiveTab}
+              activeIncidentId={status?.active_incident_id}
             />
           )}
 
