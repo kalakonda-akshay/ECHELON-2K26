@@ -2,6 +2,8 @@ export type HealthStatus = "HEALTHY" | "DEGRADED" | "CRITICAL" | "DOWN" | "WARNI
 
 export interface SystemStatus {
   system_health: HealthStatus;
+  data_mode?: "DEMO" | "LIVE";
+  last_event_age_seconds?: number | null;
   active_scenario: string | null;
   active_incident_id: string | null;
   is_recovering: boolean;
@@ -13,6 +15,7 @@ export interface SystemStatus {
   timestamp: string;
   cascade_stage?: string;
   resolved_incident?: string | null;
+  services?: Record<string, any>;
 }
 
 export interface TopologyNode {

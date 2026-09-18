@@ -33,11 +33,16 @@ import { WhyNowView } from "@/components/tracelens/views/why-now-view";
 import { CopilotView } from "@/components/tracelens/views/copilot-view";
 import { ReplayView } from "@/components/tracelens/views/replay-view";
 import { ProjectSummary, ProjectDetails } from "@/components/tracelens/types";
+import { DevDiagnosticsPanel } from "@/components/tracelens/dev-diagnostics-panel";
 import { RefreshCw } from "lucide-react";
 
 export default function TraceLensPage() {
   const [activeTab, setActiveTab] = useState<string>("overview");
   const [isPresentationMode, setIsPresentationMode] = useState<boolean>(false);
+
+  // Real-time streaming & diagnostics states
+  const [isStreamConnected, setIsStreamConnected] = useState<boolean>(false);
+  const [isDiagnosticsOpen, setIsDiagnosticsOpen] = useState<boolean>(false);
 
   // Multi-Project states
   const [projects, setProjects] = useState<ProjectSummary[]>([]);
@@ -115,12 +120,50 @@ export default function TraceLensPage() {
     }
   }, []);
 
-  // Polling loop every 3 seconds
+  // Real-Time SSE Telemetry Stream Connection
   useEffect(() => {
     fetchAllData();
-    const interval = setInterval(fetchAllData, 3000);
-    return () => clearInterval(interval);
+
+    // Zero-latency reactive stream: updates 6 dashboard cards in real time without browser refresh
+    const disconnectStream = TraceLensAPI.connectTelemetryStream(
+      (incomingState) => {
+        setStatus((prev) => {
+          // If incident or system health transitioned, refresh full diagnosis in background
+          if (
+            prev?.active_incident_id !== incomingState.active_incident_id ||
+            prev?.system_health !== incomingState.system_health ||
+            prev?.active_scenario !== incomingState.active_scenario
+          ) {
+            fetchAllData();
+          }
+          return incomingState;
+        });
+        setLastRefreshed(new Date());
+      },
+      (connected) => {
+        setIsStreamConnected(connected);
+        if (connected) setBackendOnline(true);
+      }
+    );
+
+    // Periodic reconciliation interval every 6 seconds as fallback
+    const interval = setInterval(fetchAllData, 6000);
+
+    return () => {
+      disconnectStream();
+      clearInterval(interval);
+    };
   }, [fetchAllData]);
+
+  const handleToggleDataMode = async () => {
+    const nextMode = status?.data_mode === "LIVE" ? "DEMO" : "LIVE";
+    try {
+      await TraceLensAPI.setTelemetryMode(nextMode);
+      fetchAllData();
+    } catch (e) {
+      console.error("Failed to switch pipeline mode:", e);
+    }
+  };
 
   async function handleSelectProject(projectId: string) {
     setActiveProjectId(projectId);
@@ -214,6 +257,9 @@ export default function TraceLensPage() {
           activeProjectId={activeProjectId}
           onSelectProject={handleSelectProject}
           onOpenConnectProject={() => setActiveTab("connect_project")}
+          isStreamConnected={isStreamConnected}
+          onToggleDataMode={handleToggleDataMode}
+          onOpenDiagnostics={() => setIsDiagnosticsOpen(true)}
         />
 
         {/* Backend offline alert if connection fails */}
@@ -362,6 +408,15 @@ export default function TraceLensPage() {
           )}
         </main>
       </div>
+
+      {/* Real-Time Telemetry Dev Diagnostics Panel */}
+      <DevDiagnosticsPanel
+        isOpen={isDiagnosticsOpen}
+        onClose={() => setIsDiagnosticsOpen(false)}
+        status={status}
+        isStreamConnected={isStreamConnected}
+        onRefreshData={fetchAllData}
+      />
     </div>
   );
 }

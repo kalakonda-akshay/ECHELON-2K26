@@ -246,5 +246,152 @@ export const TraceLensAPI = {
     return fetchJson(`${API_BASE}/projects/${projectId}`, {
       method: "DELETE"
     });
+  },
+
+  // =========================================================================
+  // Real-Time Telemetry Streaming & Live Ingestion
+  // =========================================================================
+  connectTelemetryStream(
+    onData: (state: SystemStatus) => void,
+    onStatusChange?: (connected: boolean) => void
+  ): () => void {
+    if (typeof window === "undefined") return () => {};
+
+    let es: EventSource | null = null;
+    let isClosing = false;
+    let reconnectTimeout: any = null;
+
+    const connect = () => {
+      if (isClosing) return;
+      try {
+        es = new EventSource(`${API_BASE}/telemetry/stream`);
+
+        es.onopen = () => {
+          onStatusChange?.(true);
+        };
+
+        es.onmessage = (event) => {
+          try {
+            const parsed = JSON.parse(event.data);
+            if (parsed.type === "state" && parsed.data) {
+              onData(parsed.data);
+            }
+          } catch (e) {
+            // Ignore parse errors on keepalive ping
+          }
+        };
+
+        es.onerror = () => {
+          onStatusChange?.(false);
+          es?.close();
+          if (!isClosing) {
+            reconnectTimeout = setTimeout(connect, 2500);
+          }
+        };
+      } catch (err) {
+        onStatusChange?.(false);
+        if (!isClosing) {
+          reconnectTimeout = setTimeout(connect, 3000);
+        }
+      }
+    };
+
+    connect();
+
+    return () => {
+      isClosing = true;
+      if (reconnectTimeout) clearTimeout(reconnectTimeout);
+      if (es) es.close();
+      onStatusChange?.(false);
+    };
+  },
+
+  async ingestTelemetry(payload: any): Promise<any> {
+    return fetchJson(`${API_BASE}/telemetry/ingest`, {
+      method: "POST",
+      body: JSON.stringify(payload)
+    });
+  },
+
+  async setTelemetryMode(mode: "DEMO" | "LIVE"): Promise<{ status: string; data_mode: string }> {
+    return fetchJson(`${API_BASE}/telemetry/mode`, {
+      method: "POST",
+      body: JSON.stringify({ mode })
+    });
+  },
+
+  async streamCopilotChat(
+    messages: { role: string; content: string }[],
+    options: {
+      apiKey?: string;
+      projectId?: string;
+      signal?: AbortSignal;
+      onChunk: (delta: string) => void;
+      onCitations?: (citations: string[]) => void;
+      onActions?: (actions: any[]) => void;
+      onDone?: (info: { confidence?: string; modelSource?: string }) => void;
+      onError?: (err: Error) => void;
+    }
+  ): Promise<void> {
+    const { apiKey, projectId, signal, onChunk, onCitations, onActions, onDone, onError } = options;
+    try {
+      const res = await fetch(`${API_BASE}/copilot/chat/stream`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          messages,
+          api_key: apiKey || undefined,
+          project_id: projectId || "FoodDelivery-Demo"
+        }),
+        signal
+      });
+
+      if (!res.ok) {
+        throw new Error(`Copilot stream error ${res.status}: ${await res.text()}`);
+      }
+
+      const reader = res.body?.getReader();
+      if (!reader) throw new Error("ReadableStream not supported by browser");
+
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() || "";
+
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (trimmed.startsWith("data:")) {
+            const jsonStr = trimmed.slice(5).trim();
+            if (jsonStr) {
+              try {
+                const event = JSON.parse(jsonStr);
+                if (event.type === "chunk" && event.delta) {
+                  onChunk(event.delta);
+                } else if (event.type === "citations" && event.citations) {
+                  onCitations?.(event.citations);
+                } else if (event.type === "action_links" && event.action_links) {
+                  onActions?.(event.action_links);
+                } else if (event.type === "done") {
+                  onDone?.({ confidence: event.confidence, modelSource: event.model_source });
+                }
+              } catch (e) {
+                // Ignore parse errors on partial chunk
+              }
+            }
+          }
+        }
+      }
+    } catch (err: any) {
+      if (err.name === "AbortError") {
+        return; // User aborted generating
+      }
+      onError?.(err);
+    }
   }
 };

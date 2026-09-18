@@ -1,4 +1,5 @@
 import os
+import re
 import zipfile
 import shutil
 import tempfile
@@ -83,17 +84,34 @@ class SecureArchiveExtractor:
                 )
 
             for member in infolist:
-                # Resolve path and check traversal
-                member_path = member.filename
-                # Normalize slashes
-                norm_name = member_path.replace("\\", "/")
+                raw_name = member.filename
+                # Normalize slashes & clean leading slashes/drive letters
+                norm_name = raw_name.replace("\\", "/")
+                # Strip Windows drive letters (e.g., C:/...) and leading slashes
+                clean_name = re.sub(r'^[a-zA-Z]:[/]+', '', norm_name)
+                clean_name = clean_name.lstrip("/")
 
-                # Path traversal check
-                dest_path = os.path.abspath(os.path.join(target_dir, member_path))
+                # Skip root or empty member entries
+                if not clean_name or clean_name == ".":
+                    continue
+
+                # Check for explicit directory traversal attempts
+                parts = [p for p in clean_name.split("/") if p and p != "."]
+                if ".." in parts:
+                    shutil.rmtree(target_dir, ignore_errors=True)
+                    raise SecurityViolationError(
+                        f"Zip-Slip path traversal vulnerability detected in member: {raw_name}"
+                    )
+
+                # Safe destination path calculation
+                safe_rel_path = os.path.join(*parts) if parts else ""
+                dest_path = os.path.abspath(os.path.join(target_dir, safe_rel_path))
+
+                # Hard invariant: dest_path MUST reside inside target_dir
                 if not dest_path.startswith(target_dir + os.sep) and dest_path != target_dir:
                     shutil.rmtree(target_dir, ignore_errors=True)
                     raise SecurityViolationError(
-                        f"Zip-Slip path traversal vulnerability detected in member: {member_path}"
+                        f"Zip-Slip path traversal escaping target directory in member: {raw_name}"
                     )
 
                 # Check total uncompressed size limit
@@ -105,23 +123,22 @@ class SecureArchiveExtractor:
                     )
 
                 # Check if path contains blocked directory
-                parts = norm_name.split("/")
                 if any(p in BLOCKED_DIR_NAMES for p in parts):
                     for p in parts:
                         if p in BLOCKED_DIR_NAMES:
                             skipped_dirs.add(p)
                     continue
 
-                # Check sensitive files
-                filename_lower = os.path.basename(norm_name).lower()
+                # Check sensitive files (redact and audit)
+                filename_lower = os.path.basename(clean_name).lower()
                 is_sensitive = False
                 for pattern in SENSITIVE_PATTERNS:
                     if pattern in filename_lower:
                         sensitive_files.append({
-                            "relative_path": norm_name,
+                            "relative_path": clean_name,
                             "type": "SECRET_OR_KEY",
                             "redacted": True,
-                            "notice": "Detected sensitive credential/configuration file. Values strictly redacted."
+                            "notice": f"Detected sensitive credential/configuration file ({filename_lower}). Values strictly redacted."
                         })
                         is_sensitive = True
                         break
@@ -129,12 +146,16 @@ class SecureArchiveExtractor:
                 if is_sensitive:
                     continue
 
-                if not member.is_dir():
+                if not member.is_dir() and not raw_name.endswith("/"):
                     # Ensure parent dir exists
                     os.makedirs(os.path.dirname(dest_path), exist_ok=True)
                     with archive.open(member) as source, open(dest_path, "wb") as target:
                         shutil.copyfileobj(source, target)
                     extracted_files.append(os.path.relpath(dest_path, target_dir).replace("\\", "/"))
+
+        if not extracted_files and not sensitive_files:
+            shutil.rmtree(target_dir, ignore_errors=True)
+            raise ValueError("No supported project files found in the archive.")
 
         # Determine root directory if wrapped inside a single folder
         effective_root = target_dir

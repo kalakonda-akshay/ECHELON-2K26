@@ -362,37 +362,107 @@ class ProjectAnalyzer:
 
     def _discover_routes(self, project_dir: str, files_by_ext: Dict[str, List[str]]) -> List[Dict[str, Any]]:
         routes = []
-        # Python FastAPI / Flask route regex
-        py_route_pattern = re.compile(r'@(?:app|router|bp)\.(get|post|put|delete|patch)\s*\(\s*["\']([^"\']+)["\']', re.IGNORECASE)
+        # Python FastAPI / Flask route patterns
+        fastapi_pattern = re.compile(r'@(?:app|router|bp)\.(get|post|put|delete|patch|options|head)\s*\(\s*["\']([^"\']+)["\']', re.IGNORECASE)
+        flask_route_pattern = re.compile(r'@(?:app|router|bp)\.route\s*\(\s*["\']([^"\']+)["\'](?:.*?methods\s*=\s*\[([^\]]+)\])?', re.IGNORECASE)
+        django_route_pattern = re.compile(r'(?:path|re_path)\s*\(\s*["\']([^"\']+)["\']', re.IGNORECASE)
         # Express route regex
-        express_route_pattern = re.compile(r'(?:app|router)\.(get|post|put|delete|patch)\s*\(\s*["\']([^"\']+)["\']', re.IGNORECASE)
+        express_route_pattern = re.compile(r'(?:app|router)\.(get|post|put|delete|patch|use|all)\s*\(\s*["\']([^"\']+)["\']', re.IGNORECASE)
+        # Spring Boot Java route regex
+        spring_route_pattern = re.compile(r'@(Get|Post|Put|Delete|Patch|Request)Mapping\s*\(\s*(?:value\s*=\s*)?["\']([^"\']+)["\']', re.IGNORECASE)
 
-        for py_file in files_by_ext.get(".py", [])[:30]:
+        # 1. Python source files (FastAPI, Flask, Django)
+        for py_file in files_by_ext.get(".py", [])[:50]:
             try:
                 with open(os.path.join(project_dir, py_file), "r", encoding="utf-8", errors="ignore") as f:
                     content = f.read()
-                    matches = py_route_pattern.findall(content)
-                    for method, path in matches:
+                    # FastAPI
+                    for method, path in fastapi_pattern.findall(content):
                         routes.append({
                             "method": method.upper(),
                             "path": path,
                             "file": py_file,
-                            "framework": "FastAPI / Flask"
+                            "framework": "FastAPI"
                         })
+                    # Flask
+                    for path, methods_str in flask_route_pattern.findall(content):
+                        if methods_str:
+                            for m in re.findall(r'["\']([a-zA-Z]+)["\']', methods_str):
+                                routes.append({
+                                    "method": m.upper(),
+                                    "path": path,
+                                    "file": py_file,
+                                    "framework": "Flask"
+                                })
+                        else:
+                            routes.append({
+                                "method": "GET",
+                                "path": path,
+                                "file": py_file,
+                                "framework": "Flask"
+                            })
+                    # Django
+                    if "urlpatterns" in content:
+                        for path in django_route_pattern.findall(content):
+                            routes.append({
+                                "method": "ANY",
+                                "path": "/" + path.lstrip("/"),
+                                "file": py_file,
+                                "framework": "Django"
+                            })
             except Exception:
                 pass
 
-        for js_file in (files_by_ext.get(".js", []) + files_by_ext.get(".ts", []))[:30]:
+        # 2. JavaScript / TypeScript files (Express, NestJS, Next.js)
+        for js_file in (files_by_ext.get(".js", []) + files_by_ext.get(".ts", []) + files_by_ext.get(".tsx", []))[:50]:
+            # Next.js App Router route.ts/route.js files
+            if re.search(r'app[/\\].*[/\\ ]route\.[jt]s$', js_file):
+                route_path = "/" + re.sub(r'^.*app[/\\ ]', '', os.path.dirname(js_file)).replace("\\", "/")
+                routes.append({
+                    "method": "ANY",
+                    "path": route_path if route_path != "/" else "/api",
+                    "file": js_file,
+                    "framework": "Next.js App Router"
+                })
+                continue
+            # Next.js Pages router pages/api/...
+            if "pages/api" in js_file.replace("\\", "/"):
+                clean_p = "/" + re.sub(r'^.*pages/', '', js_file).replace("\\", "/").rsplit(".", 1)[0]
+                routes.append({
+                    "method": "ANY",
+                    "path": clean_p,
+                    "file": js_file,
+                    "framework": "Next.js API Route"
+                })
+                continue
+
             try:
                 with open(os.path.join(project_dir, js_file), "r", encoding="utf-8", errors="ignore") as f:
                     content = f.read()
                     matches = express_route_pattern.findall(content)
                     for method, path in matches:
                         routes.append({
-                            "method": method.upper(),
+                            "method": method.upper() if method.lower() != "use" else "ALL",
                             "path": path,
                             "file": js_file,
                             "framework": "Express"
+                        })
+            except Exception:
+                pass
+
+        # 3. Java files (Spring Boot)
+        for java_file in files_by_ext.get(".java", [])[:30]:
+            try:
+                with open(os.path.join(project_dir, java_file), "r", encoding="utf-8", errors="ignore") as f:
+                    content = f.read()
+                    matches = spring_route_pattern.findall(content)
+                    for m_type, path in matches:
+                        method = m_type.upper() if m_type.lower() != "request" else "ALL"
+                        routes.append({
+                            "method": method,
+                            "path": path,
+                            "file": java_file,
+                            "framework": "Spring Boot"
                         })
             except Exception:
                 pass
@@ -404,25 +474,69 @@ class ProjectAnalyzer:
         svc_ids = [s["id"] for s in services]
 
         call_pattern = re.compile(r'https?://([a-zA-Z0-9_-]+)(?::(\d+))?', re.IGNORECASE)
+        env_pattern = re.compile(r'(?:process\.env|os\.environ|os\.getenv)\.([A-Z0-9_]+)', re.IGNORECASE)
+        db_client_patterns = {
+            "postgres-db": re.compile(r'(?:psycopg2|asyncpg|create_engine\(.*postgres|new Pool\(|pgClient)', re.IGNORECASE),
+            "redis-db": re.compile(r'(?:ioredis|redis\.createClient|redis\.Redis\(|StrictRedis)', re.IGNORECASE),
+            "mongo-db": re.compile(r'(?:mongoose\.connect|MongoClient\(|pymongo)', re.IGNORECASE),
+            "mysql-db": re.compile(r'(?:mysql\.createConnection|pymysql\.connect)', re.IGNORECASE),
+        }
+        queue_patterns = {
+            "kafka-broker": re.compile(r'(?:KafkaClient|kafka\.Producer|KafkaProducer|kafkajs)', re.IGNORECASE),
+            "rabbitmq-broker": re.compile(r'(?:amqplib|pika\.BlockingConnection|pika\.ConnectionParameters)', re.IGNORECASE),
+        }
 
-        for ext in [".py", ".js", ".ts"]:
-            for f_rel in files_by_ext.get(ext, [])[:40]:
-                source_svc = next((s["id"] for s in services if s["source_dir"] and f_rel.startswith(s["source_dir"].strip("/") + "/")), None)
+        for ext in [".py", ".js", ".ts", ".java"]:
+            for f_rel in files_by_ext.get(ext, [])[:50]:
+                source_svc = next((s["id"] for s in services if s.get("source_dir") and f_rel.startswith(s["source_dir"].strip("/") + "/")), None)
                 if not source_svc:
                     source_svc = services[0]["id"] if services else "main-service"
 
                 try:
                     with open(os.path.join(project_dir, f_rel), "r", encoding="utf-8", errors="ignore") as f:
                         content = f.read()
-                        matches = call_pattern.findall(content)
-                        for host, port_str in matches:
+
+                        # 1. Direct HTTP URL calls
+                        for host, port_str in call_pattern.findall(content):
                             target = host.lower()
                             if target in svc_ids and target != source_svc:
                                 deps.append({
                                     "source": source_svc,
                                     "target": target,
-                                    "confidence": "LIKELY",
-                                    "evidence": f"HTTP client in {f_rel} calls http://{target}"
+                                    "confidence": "CONFIRMED",
+                                    "evidence": f"Direct HTTP client in {f_rel} calls http://{target}"
+                                })
+
+                        # 2. Environment variable references (e.g. PAYMENT_SERVICE_URL)
+                        for env_var in env_pattern.findall(content):
+                            env_lower = env_var.lower()
+                            for s_id in svc_ids:
+                                if s_id != source_svc and s_id.replace("-", "_") in env_lower:
+                                    deps.append({
+                                        "source": source_svc,
+                                        "target": s_id,
+                                        "confidence": "LIKELY",
+                                        "evidence": f"Environment variable {env_var} in {f_rel} references service {s_id}"
+                                    })
+
+                        # 3. Database client connections
+                        for db_id, pattern in db_client_patterns.items():
+                            if any(s["id"] == db_id for s in services) and pattern.search(content):
+                                deps.append({
+                                    "source": source_svc,
+                                    "target": db_id,
+                                    "confidence": "CONFIRMED",
+                                    "evidence": f"Database client instantiation in {f_rel} connects to {db_id}"
+                                })
+
+                        # 4. Message broker connections
+                        for q_id, pattern in queue_patterns.items():
+                            if any(s["id"] == q_id for s in services) and pattern.search(content):
+                                deps.append({
+                                    "source": source_svc,
+                                    "target": q_id,
+                                    "confidence": "CONFIRMED",
+                                    "evidence": f"Message queue client in {f_rel} publishes/subscribes to {q_id}"
                                 })
                 except Exception:
                     pass

@@ -79,7 +79,93 @@ class TelemetrySimulator:
         # History of metric points for charts
         self.metrics_history: Dict[str, List[Dict[str, Any]]] = {s: [] for s in self.services}
 
+        # Separated Data Mode: "DEMO" (deterministic simulator) vs "LIVE" (external ingestion)
+        self.data_mode: str = "DEMO"
+        self.last_live_event_time: Optional[float] = None
+        self.live_overrides: Dict[str, Dict[str, Any]] = {}
+        self._async_listeners: List[Any] = []
+
         self._initialize_baseline()
+
+    def register_listener(self, queue: Any):
+        """Register an asyncio.Queue to receive instant event-driven SSE notifications."""
+        if queue not in self._async_listeners:
+            self._async_listeners.append(queue)
+
+    def unregister_listener(self, queue: Any):
+        """Unregister an asyncio.Queue when an SSE client disconnects."""
+        if queue in self._async_listeners:
+            self._async_listeners.remove(queue)
+
+    def _notify_listeners(self):
+        """Notify all connected SSE stream listeners that cluster state has changed."""
+        for q in list(self._async_listeners):
+            try:
+                q.put_nowait(True)
+            except Exception:
+                pass
+
+    def set_data_mode(self, mode: str) -> str:
+        """Switch between 'DEMO' (simulated chaos scenarios) and 'LIVE' (real-time telemetry)."""
+        mode_upper = mode.strip().upper()
+        if mode_upper in ["DEMO", "LIVE"]:
+            self.data_mode = mode_upper
+            self._notify_listeners()
+        return self.data_mode
+
+    def ingest_telemetry(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+        """Ingest live external telemetry, update service overrides, and push to SSE stream."""
+        self.data_mode = "LIVE"
+        self.last_live_event_time = time.time()
+
+        # 1. Update services/metrics
+        if "services" in payload and isinstance(payload["services"], dict):
+            for s_id, s_data in payload["services"].items():
+                self._update_live_service(s_id, s_data)
+        elif "service" in payload or "service_id" in payload:
+            s_id = payload.get("service") or payload.get("service_id")
+            self._update_live_service(s_id, payload)
+        elif "metrics" in payload and isinstance(payload["metrics"], dict):
+            for s_id, s_data in payload["metrics"].items():
+                self._update_live_service(s_id, s_data)
+
+        # 2. Append logs if provided
+        if "logs" in payload and isinstance(payload["logs"], list):
+            for log in payload["logs"]:
+                self.logs_buffer.insert(0, log)
+        elif "message" in payload:
+            s_id = payload.get("service", "live-telemetry")
+            self._append_service_log(s_id, payload.get("level", "INFO"), payload.get("message", ""))
+
+        # 3. Append traces if provided
+        if "traces" in payload and isinstance(payload["traces"], list):
+            for tr in payload["traces"]:
+                self.recent_traces.insert(0, tr)
+        elif "trace_id" in payload:
+            self.recent_traces.insert(0, payload)
+
+        self._notify_listeners()
+        return {
+            "status": "INGESTED",
+            "data_mode": self.data_mode,
+            "last_event_time": self.last_live_event_time,
+            "services_updated": list(self.live_overrides.keys())
+        }
+
+    def _update_live_service(self, s_id: str, data: Dict[str, Any]):
+        if not s_id or not isinstance(data, dict):
+            return
+        if s_id not in self.services:
+            self.services.append(s_id)
+            if s_id not in self.service_counters:
+                self.service_counters[s_id] = {"request_count": 100, "error_count": 0}
+            if s_id not in self.metrics_history:
+                self.metrics_history[s_id] = []
+
+        cur = self.live_overrides.setdefault(s_id, {})
+        for k in ["latency", "p50_latency_ms", "p95_latency_ms", "p99_latency_ms", "error_rate", "error_rate_pct", "status", "rps", "cpu_pct", "memory_pct"]:
+            if k in data:
+                cur[k] = data[k]
 
     def _normalize_scenario(self, raw_scenario: str) -> str:
         """Normalizes scenario string to canonical uppercase format."""
@@ -166,6 +252,7 @@ class TelemetrySimulator:
 
     def inject_failure(self, scenario_name: str) -> Dict[str, Any]:
         """Injects one of 4 deterministic scenarios: DATABASE_FAILURE, PAYMENT_LATENCY, INVENTORY_CRASH, BAD_DEPLOYMENT."""
+        self.data_mode = "DEMO"
         scenario = self._normalize_scenario(scenario_name)
         valid_scenarios = ["DATABASE_FAILURE", "PAYMENT_LATENCY", "INVENTORY_CRASH", "BAD_DEPLOYMENT"]
         if scenario not in valid_scenarios:
@@ -188,6 +275,7 @@ class TelemetrySimulator:
             "message": f"Injected failure scenario [{scenario}] into cluster (Incident: {self.active_incident_id})."
         }
         self.logs_buffer.insert(0, inject_log)
+        self._notify_listeners()
 
         return {
             "incident_id": self.active_incident_id,
@@ -199,7 +287,9 @@ class TelemetrySimulator:
 
     def reset(self) -> Dict[str, Any]:
         """Restores complete environment to healthy baseline."""
+        self.live_overrides.clear()
         self._initialize_baseline()
+        self._notify_listeners()
         return {
             "status": "HEALTHY",
             "message": "Cluster state successfully reset to 100% nominal baseline.",
@@ -222,6 +312,7 @@ class TelemetrySimulator:
             "span_id": "span-rec-01",
             "message": f"Remediation playbook approved for incident {self.active_incident_id}. State transitioning to recovering."
         })
+        self._notify_listeners()
         return {"status": "RECOVERING", "incident_id": self.active_incident_id}
 
     def complete_recovery(self) -> Dict[str, Any]:
@@ -243,6 +334,7 @@ class TelemetrySimulator:
                 "message": f"Service {SERVICE_CONFIG[s]['name']} recovery verified. Traffic flowing nominally."
             })
 
+        self._notify_listeners()
         return {
             "status": "HEALTHY",
             "verified": True,
@@ -310,6 +402,13 @@ class TelemetrySimulator:
 
     def _compute_service_telemetry(self, service: str, now: float) -> Dict[str, Any]:
         base_metric = self._generate_healthy_metric(service, now)
+
+        if self.data_mode == "LIVE":
+            if service in self.live_overrides:
+                base_metric.update(self.live_overrides[service])
+                base_metric["service"] = service
+                base_metric["timestamp"] = datetime.fromtimestamp(now, tz=timezone.utc).isoformat()
+            return base_metric
 
         if not self.active_scenario:
             return base_metric

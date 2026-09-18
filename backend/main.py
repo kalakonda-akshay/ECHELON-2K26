@@ -17,7 +17,10 @@ for env_file in [Path(".env.local"), Path(".env"), Path(__file__).resolve().pare
         except Exception:
             pass
 
-from fastapi import FastAPI, HTTPException
+import asyncio
+import json
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Dict, List, Any, Optional
@@ -76,6 +79,14 @@ class AcquireEvidenceRequest(BaseModel):
 class CopilotRequest(BaseModel):
     question: str
     api_key: Optional[str] = None
+
+class CopilotChatStreamRequest(BaseModel):
+    messages: List[Dict[str, str]]
+    api_key: Optional[str] = None
+    project_id: Optional[str] = "FoodDelivery-Demo"
+
+class TelemetryModeRequest(BaseModel):
+    mode: str
 
 class ChangeAnalysisRequest(BaseModel):
     service_id: str
@@ -155,8 +166,12 @@ def get_system_state():
             "recent_logs_count": len(m.get("recent_logs", []))
         }
 
+    last_event_age = round(time.time() - simulator.last_live_event_time, 1) if simulator.last_live_event_time else None
+
     return {
         "system_health": system_health,
+        "data_mode": simulator.data_mode,
+        "last_event_age_seconds": last_event_age,
         "active_scenario": scenario,
         "active_incident_id": incident_id,
         "is_recovering": simulator.is_recovering,
@@ -170,6 +185,61 @@ def get_system_state():
         "services": services_summary,
         "timestamp": tick["timestamp"]
     }
+
+# =========================================================================
+# Real-Time Telemetry Streaming & Ingestion (/api/telemetry/stream & /api/telemetry/ingest)
+# =========================================================================
+@app.get("/api/telemetry/stream")
+async def stream_telemetry(request: Request):
+    """
+    Real-time Server-Sent Events (SSE) telemetry stream.
+    Pushes live system state and telemetry metrics every ~1.2s or immediately on ingestion/injection/recovery events.
+    Enables instant card updates without manual browser refresh.
+    """
+    async def event_generator():
+        queue = asyncio.Queue(maxsize=10)
+        simulator.register_listener(queue)
+        try:
+            # Yield initial snapshot immediately upon connection
+            state = get_system_state()
+            yield f"data: {json.dumps({'type': 'state', 'data': state})}\n\n"
+
+            while True:
+                if await request.is_disconnected():
+                    break
+                try:
+                    # Wait up to 1.2s for an event-driven notification
+                    await asyncio.wait_for(queue.get(), timeout=1.2)
+                except asyncio.TimeoutError:
+                    pass
+
+                state = get_system_state()
+                yield f"data: {json.dumps({'type': 'state', 'data': state})}\n\n"
+        except asyncio.CancelledError:
+            pass
+        finally:
+            simulator.unregister_listener(queue)
+
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no"
+        }
+    )
+
+@app.post("/api/telemetry/ingest")
+def ingest_live_telemetry(payload: Dict[str, Any]):
+    """Ingest external metrics/events into the live platform and notify the SSE stream."""
+    return simulator.ingest_telemetry(payload)
+
+@app.post("/api/telemetry/mode")
+def set_telemetry_mode(req: TelemetryModeRequest):
+    """Explicitly switch between 'DEMO' (simulated chaos scenarios) and 'LIVE' (real-time telemetry)."""
+    mode = simulator.set_data_mode(req.mode)
+    return {"status": "SUCCESS", "data_mode": mode}
 
 # =========================================================================
 # 2. Topology Endpoint (/api/topology)
@@ -496,6 +566,57 @@ def copilot_query(req: CopilotRequest):
         api_key=req.api_key
     )
 
+@app.post("/api/copilot/chat/stream")
+async def copilot_chat_stream(req: CopilotChatStreamRequest):
+    """
+    Streaming multi-turn conversational AI Copilot endpoint.
+    Builds rich structured TraceLens context (telemetry, root cause, evidence, project analysis)
+    and yields token-by-token SSE streaming response.
+    """
+    tick = simulator.tick()
+    metrics = tick["current_metrics"]
+    trace = tick["latest_trace"]
+    scenario = simulator.active_scenario
+    elapsed_s = round(time.time() - simulator.scenario_start_time, 1) if scenario and simulator.scenario_start_time else 0.0
+
+    diagnosis = root_cause_engine.analyze(metrics, trace, scenario)
+    initiator = diagnosis.get("initiating_service")
+    blast = blast_radius_engine.analyze(metrics, initiator, scenario)
+    why_now = why_now_engine.analyze_why_now(scenario, metrics, elapsed_s)
+    recovery = sandbox_engine.get_candidate_options(scenario, initiator)
+    inc = diagnosis.get("incident") or {}
+    symptom = inc.get("symptom", "502 Bad Gateway")
+    similar = incident_memory_engine.find_similar(scenario, symptom, initiator)
+
+    # Optional project context
+    project_details = None
+    if req.project_id:
+        try:
+            project_details = project_manager.get_project(req.project_id)
+        except Exception:
+            pass
+
+    context = copilot_engine.build_context(
+        scenario=scenario,
+        diagnosis=diagnosis,
+        blast_radius=blast,
+        why_now=why_now,
+        recovery=recovery,
+        similar_incidents=similar,
+        project_details=project_details,
+        data_mode=simulator.data_mode
+    )
+
+    return StreamingResponse(
+        copilot_engine.stream_chat(req.messages, context, req.api_key),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no"
+        }
+    )
+
 @app.post("/api/deployments/analyze-change")
 def analyze_change(req: ChangeAnalysisRequest):
     """Pre-deployment change risk estimation using service criticality and blast radius topology."""
@@ -602,7 +723,9 @@ def get_project_integration_plan(project_id: str):
 @app.post("/api/projects/{project_id}/telemetry")
 def ingest_project_telemetry(project_id: str, payload: Dict[str, Any]):
     """Ingest live external telemetry and normalize into TraceLens engine format."""
-    return project_manager.ingest_telemetry(project_id, payload)
+    res = project_manager.ingest_telemetry(project_id, payload)
+    simulator.ingest_telemetry(payload)
+    return res
 
 @app.delete("/api/projects/{project_id}")
 def delete_project(project_id: str):

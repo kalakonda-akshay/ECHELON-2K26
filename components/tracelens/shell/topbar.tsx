@@ -16,7 +16,8 @@ import {
   ChevronDown,
   FolderGit2,
   PlusCircle,
-  Layers
+  Layers,
+  Activity
 } from "lucide-react";
 import { SystemStatus, EarlyWarningData, ProjectSummary } from "../types";
 
@@ -33,6 +34,9 @@ interface TopbarProps {
   activeProjectId?: string;
   onSelectProject?: (projectId: string) => void;
   onOpenConnectProject?: () => void;
+  isStreamConnected?: boolean;
+  onToggleDataMode?: () => void;
+  onOpenDiagnostics?: () => void;
 }
 
 export function Topbar({
@@ -47,7 +51,10 @@ export function Topbar({
   projects = [],
   activeProjectId = "FoodDelivery-Demo",
   onSelectProject,
-  onOpenConnectProject
+  onOpenConnectProject,
+  isStreamConnected = false,
+  onToggleDataMode,
+  onOpenDiagnostics
 }: TopbarProps) {
   const [isProjectMenuOpen, setIsProjectMenuOpen] = React.useState(false);
   const [mounted, setMounted] = React.useState(false);
@@ -167,6 +174,43 @@ export function Topbar({
           ) : null}
         </div>
 
+        {/* Data Mode Badge (DEMO DATA vs LIVE TELEMETRY) */}
+        <button
+          onClick={onToggleDataMode || onOpenDiagnostics}
+          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-mono font-semibold border transition cursor-pointer ${
+            status?.data_mode === "LIVE"
+              ? "bg-emerald-950/70 text-emerald-300 border-emerald-800/80 hover:bg-emerald-900/60 shadow-sm"
+              : "bg-amber-950/70 text-amber-300 border-amber-800/80 hover:bg-amber-900/60 shadow-sm"
+          }`}
+          title={`Pipeline Mode: ${status?.data_mode || "DEMO"}. Click to toggle or configure.`}
+        >
+          <span className={`w-2 h-2 rounded-full ${status?.data_mode === "LIVE" ? "bg-emerald-400 animate-pulse" : "bg-amber-400"}`} />
+          <span>{status?.data_mode === "LIVE" ? "LIVE TELEMETRY" : "DEMO DATA"}</span>
+          <span className="hidden sm:inline text-[9px] px-1 py-0.2 rounded bg-black/40 text-slate-400 border border-slate-700/50">
+            {status?.data_mode === "LIVE" ? "STREAM" : "SIMULATOR"}
+          </span>
+        </button>
+
+        {/* Live Stream Connection Status Indicator */}
+        <div
+          onClick={onOpenDiagnostics}
+          className={`hidden xl:flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-mono border transition cursor-pointer ${
+            isStreamConnected
+              ? "bg-slate-900/90 text-slate-300 border-slate-800 hover:border-sky-500/50"
+              : "bg-rose-950/40 text-rose-300 border-rose-900/60 animate-pulse"
+          }`}
+          title="Click to open Real-Time Telemetry Diagnostics"
+        >
+          <Radio className={`w-3 h-3 ${isStreamConnected ? "text-emerald-400" : "text-rose-400"}`} />
+          <span>
+            {isStreamConnected
+              ? status?.data_mode === "LIVE"
+                ? `LIVE STREAM ● CONNECTED ${status.last_event_age_seconds != null ? `(${status.last_event_age_seconds}s ago)` : ""}`
+                : "DEMO STREAM ● CONNECTED"
+              : "TELEMETRY OFFLINE"}
+          </span>
+        </div>
+
         {/* Active Scenario Tag */}
         {status?.active_scenario && (
           <div
@@ -217,6 +261,16 @@ export function Topbar({
           <span className="hidden sm:inline" suppressHydrationWarning>
             {mounted ? `Synced ${lastRefreshed.toLocaleTimeString()}` : "Synced"}
           </span>
+        </button>
+
+        {/* Diagnostics Button */}
+        <button
+          onClick={onOpenDiagnostics}
+          className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-900 hover:bg-slate-850 text-slate-300 border border-slate-800 hover:border-sky-500/50 text-xs font-mono transition"
+          title="Open Real-Time Diagnostics Panel"
+        >
+          <Activity className="w-3.5 h-3.5 text-sky-400" />
+          <span className="hidden lg:inline">Diagnostics</span>
         </button>
 
         {/* Quick Reset */}
