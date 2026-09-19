@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { TraceRootAPI } from "@/components/TraceRoot/api";
+import { TraceRootAPI } from "@/components/traceroute/api";
 import {
   SystemStatus,
   TopologyData,
@@ -13,28 +13,28 @@ import {
   EarlyWarningData,
   CausalGraphData,
   AdaptiveAnalysis
-} from "@/components/TraceRoot/types";
-import { Sidebar } from "@/components/TraceRoot/shell/sidebar";
-import { Topbar } from "@/components/TraceRoot/shell/topbar";
-import { OverviewView } from "@/components/TraceRoot/views/overview-view";
-import { TopologyView } from "@/components/TraceRoot/views/topology-view";
-import { CausalGraphView } from "@/components/TraceRoot/views/causal-graph-view";
-import { AdaptiveView } from "@/components/TraceRoot/views/adaptive-view";
-import { RootCauseView } from "@/components/TraceRoot/views/root-cause-view";
-import { BlastRadiusView } from "@/components/TraceRoot/views/blast-radius-view";
-import { SandboxView } from "@/components/TraceRoot/views/sandbox-view";
-import { MemoryView } from "@/components/TraceRoot/views/memory-view";
-import { DeploymentsView } from "@/components/TraceRoot/views/deployments-view";
-import { DemoLabView } from "@/components/TraceRoot/views/demo-lab-view";
-import { PresentationView } from "@/components/TraceRoot/views/presentation-view";
-import { ConnectProjectView } from "@/components/TraceRoot/views/connect-project-view";
-import { ProjectDashboardView } from "@/components/TraceRoot/views/project-dashboard-view";
-import { WhyNowView } from "@/components/TraceRoot/views/why-now-view";
-import { CopilotView } from "@/components/TraceRoot/views/copilot-view";
-import { ReplayView } from "@/components/TraceRoot/views/replay-view";
-import { RepairLabView } from "@/components/TraceRoot/views/repair-lab-view";
-import { ProjectSummary, ProjectDetails } from "@/components/TraceRoot/types";
-import { DevDiagnosticsPanel } from "@/components/TraceRoot/dev-diagnostics-panel";
+} from "@/components/traceroute/types";
+import { Sidebar } from "@/components/traceroute/shell/sidebar";
+import { Topbar } from "@/components/traceroute/shell/topbar";
+import { OverviewView } from "@/components/traceroute/views/overview-view";
+import { TopologyView } from "@/components/traceroute/views/topology-view";
+import { CausalGraphView } from "@/components/traceroute/views/causal-graph-view";
+import { AdaptiveView } from "@/components/traceroute/views/adaptive-view";
+import { RootCauseView } from "@/components/traceroute/views/root-cause-view";
+import { BlastRadiusView } from "@/components/traceroute/views/blast-radius-view";
+import { SandboxView } from "@/components/traceroute/views/sandbox-view";
+import { MemoryView } from "@/components/traceroute/views/memory-view";
+import { DeploymentsView } from "@/components/traceroute/views/deployments-view";
+import { DemoLabView } from "@/components/traceroute/views/demo-lab-view";
+import { PresentationView } from "@/components/traceroute/views/presentation-view";
+import { ConnectProjectView } from "@/components/traceroute/views/connect-project-view";
+import { ProjectDashboardView } from "@/components/traceroute/views/project-dashboard-view";
+import { WhyNowView } from "@/components/traceroute/views/why-now-view";
+import { CopilotView } from "@/components/traceroute/views/copilot-view";
+import { ReplayView } from "@/components/traceroute/views/replay-view";
+import { RepairLabView } from "@/components/traceroute/views/repair-lab-view";
+import { ProjectSummary, ProjectDetails } from "@/components/traceroute/types";
+import { DevDiagnosticsPanel } from "@/components/traceroute/dev-diagnostics-panel";
 import { RefreshCw } from "lucide-react";
 
 export default function TraceRootPage() {

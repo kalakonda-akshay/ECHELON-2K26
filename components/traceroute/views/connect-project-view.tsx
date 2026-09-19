@@ -18,8 +18,8 @@ import {
   ChevronRight,
   Info
 } from "lucide-react";
-import { TraceRootAPI } from "@/components/TraceRoot/api";
-import { ProjectDetails } from "@/components/TraceRoot/types";
+import { TraceRootAPI } from "@/components/traceroute/api";
+import { ProjectDetails } from "@/components/traceroute/types";
 
 interface ConnectProjectViewProps {
   onProjectSelected: (project: ProjectDetails) => void;

@@ -22,8 +22,8 @@ import {
   Zap,
   Info
 } from "lucide-react";
-import { ProjectDetails, ProjectCapabilityLevel } from "@/components/TraceRoot/types";
-import { TopologyView } from "@/components/TraceRoot/views/topology-view";
+import { ProjectDetails, ProjectCapabilityLevel } from "@/components/traceroute/types";
+import { TopologyView } from "@/components/traceroute/views/topology-view";
 
 interface ProjectDashboardViewProps {
   project: ProjectDetails;
