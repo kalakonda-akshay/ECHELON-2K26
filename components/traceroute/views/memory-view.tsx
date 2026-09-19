@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { SimilarIncident, FeedbackStats, SystemStatus, IncidentRecord } from "../types";
-import { TraceRouteAPI } from "../api";
+import { TraceRootAPI } from "../api";
 import {
   History,
   CheckCircle2,
@@ -41,9 +41,9 @@ export function MemoryView({ status, onNavigate }: MemoryViewProps) {
     async function loadMemory() {
       try {
         const [sim, hist, st] = await Promise.all([
-          TraceRouteAPI.getSimilarIncidents().catch(() => []),
-          TraceRouteAPI.getIncidentHistory().catch(() => []),
-          TraceRouteAPI.getFeedbackStats().catch(() => null)
+          TraceRootAPI.getSimilarIncidents().catch(() => []),
+          TraceRootAPI.getIncidentHistory().catch(() => []),
+          TraceRootAPI.getFeedbackStats().catch(() => null)
         ]);
         setSimilarIncidents(sim);
         setHistoryList(hist);
@@ -62,7 +62,7 @@ export function MemoryView({ status, onNavigate }: MemoryViewProps) {
     setIsSubmitting(true);
     try {
       const activeId = status?.active_incident_id || (historyList[0]?.id) || "INC-CURRENT";
-      await TraceRouteAPI.submitFeedback({
+      await TraceRootAPI.submitFeedback({
         incident_id: activeId,
         diagnosis_accurate: diagAccurate,
         recovery_effective: recEffective,
@@ -70,7 +70,7 @@ export function MemoryView({ status, onNavigate }: MemoryViewProps) {
         engineer_email: "oncall-sre@acme.corp"
       });
       setSubmittedFeedback(true);
-      const updatedStats = await TraceRouteAPI.getFeedbackStats();
+      const updatedStats = await TraceRootAPI.getFeedbackStats();
       setStats(updatedStats);
     } catch (err) {
       console.error("Failed to submit engineer feedback:", err);

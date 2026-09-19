@@ -13,7 +13,7 @@ import {
   RecoveryPlan,
   VerificationResult
 } from "../types";
-import { TraceRouteAPI } from "../api";
+import { TraceRootAPI } from "../api";
 import {
   MonitorPlay,
   X,
@@ -74,9 +74,9 @@ export function PresentationView({
     if (!recoveryPlan?.action_id) return;
     setIsExecutingLive(true);
     try {
-      await TraceRouteAPI.approveRecovery(recoveryPlan.action_id);
+      await TraceRootAPI.approveRecovery(recoveryPlan.action_id);
       await new Promise((r) => setTimeout(r, 1500));
-      const ver = await TraceRouteAPI.verifyRecovery();
+      const ver = await TraceRootAPI.verifyRecovery();
       setVerificationResult(ver);
       onRefresh();
     } catch (err) {
@@ -97,7 +97,7 @@ export function PresentationView({
           <div>
             <div className="flex items-center gap-2">
               <span className="font-extrabold text-lg tracking-wider text-slate-100 uppercase">
-                TraceRoute AI
+                TraceRoot AI
               </span>
               <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-purple-950 text-purple-300 border border-purple-800 font-bold uppercase">
                 Projector Presentation Mode
@@ -365,7 +365,7 @@ export function PresentationView({
 
           {/* Footer note */}
           <div className="text-[10px] font-mono text-slate-400 text-center">
-            TraceRoute AI Intelligent SRE Autonomous Control Plane
+            TraceRoot AI Intelligent SRE Autonomous Control Plane
           </div>
         </div>
       </div>

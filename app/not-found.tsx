@@ -14,7 +14,7 @@ export default function NotFound() {
         href="/"
         className="px-5 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-mono font-semibold transition"
       >
-        Return to TraceRoute Dashboard
+        Return to TraceRoot Dashboard
       </Link>
     </div>
   );

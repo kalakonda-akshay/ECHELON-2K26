@@ -6,7 +6,7 @@ import {
   Diagnosis,
   CopilotActionLink
 } from "../types";
-import { TraceRouteAPI } from "../api";
+import { TraceRootAPI } from "../api";
 import {
   Bot,
   User,
@@ -59,7 +59,7 @@ const QUICK_PROMPTS = [
   "Why is checkout failing right now?",
   "What changed before the incident?",
   "Explain Project Repair Lab Level 1 vs 2 vs 3",
-  "How does TraceRoute isolate patches safely?",
+  "How does TraceRoot isolate patches safely?",
   "Explain Circuit Breakers in microservices",
   "What is HikariCP connection pool saturation?",
   "What causes OOMKilled (Exit 137)?",
@@ -77,9 +77,9 @@ export function CopilotView({ status, diagnosis, onNavigate }: CopilotViewProps)
     {
       id: "welcome",
       sender: "copilot",
-      text: "Hello! I am TraceRoute Copilot, powered by Google Gemini. I can help investigate the active incident, explain failure cascades, recommend recovery actions, or resolve any technical doubt about microservices, database tuning, and distributed systems reliability. What would you like to explore?",
+      text: "Hello! I am TraceRoot Copilot, powered by Google Gemini. I can help investigate the active incident, explain failure cascades, recommend recovery actions, or resolve any technical doubt about microservices, database tuning, and distributed systems reliability. What would you like to explore?",
       citations: ["Engine: Google Gemini SRE", "Telemetry Stream: Active", "Deterministic Guardrails: Enforced"],
-      modelSource: "TraceRoute Gemini SRE Engine",
+      modelSource: "TraceRoot Gemini SRE Engine",
       timestamp: new Date().toLocaleTimeString()
     }
   ]);
@@ -92,7 +92,7 @@ export function CopilotView({ status, diagnosis, onNavigate }: CopilotViewProps)
   const abortControllerRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
-    const saved = localStorage.getItem("traceroute_gemini_api_key");
+    const saved = localStorage.getItem("TraceRoot_gemini_api_key");
     if (saved) {
       setGeminiKey(saved);
       setTempKeyInput(saved);
@@ -103,9 +103,9 @@ export function CopilotView({ status, diagnosis, onNavigate }: CopilotViewProps)
     const cleaned = key.trim();
     setGeminiKey(cleaned);
     if (cleaned) {
-      localStorage.setItem("traceroute_gemini_api_key", cleaned);
+      localStorage.setItem("TraceRoot_gemini_api_key", cleaned);
     } else {
-      localStorage.removeItem("traceroute_gemini_api_key");
+      localStorage.removeItem("TraceRoot_gemini_api_key");
     }
     setShowKeyModal(false);
   };
@@ -137,7 +137,7 @@ export function CopilotView({ status, diagnosis, onNavigate }: CopilotViewProps)
         sender: "copilot",
         text: "Started a fresh conversation session. How can I assist with your distributed systems architecture or current cluster telemetry?",
         citations: ["Session: Fresh Multi-turn", "Grounding: Active Cluster"],
-        modelSource: geminiKey ? "Google Gemini 1.5 Flash (Live API)" : "TraceRoute Gemini SRE Engine",
+        modelSource: geminiKey ? "Google Gemini 1.5 Flash (Live API)" : "TraceRoot Gemini SRE Engine",
         timestamp: new Date().toLocaleTimeString()
       }
     ]);
@@ -186,7 +186,7 @@ export function CopilotView({ status, diagnosis, onNavigate }: CopilotViewProps)
       citations: [],
       actionLinks: [],
       timestamp: new Date().toLocaleTimeString(),
-      modelSource: geminiKey ? "Google Gemini 1.5 Flash (Live API)" : "TraceRoute Gemini SRE Engine",
+      modelSource: geminiKey ? "Google Gemini 1.5 Flash (Live API)" : "TraceRoot Gemini SRE Engine",
       isStreaming: true
     };
 
@@ -214,7 +214,7 @@ export function CopilotView({ status, diagnosis, onNavigate }: CopilotViewProps)
     }
 
     try {
-      await TraceRouteAPI.streamCopilotChat(historyPayload, {
+      await TraceRootAPI.streamCopilotChat(historyPayload, {
         apiKey: geminiKey || undefined,
         signal: controller.signal,
         onChunk: (delta) => {
@@ -405,7 +405,7 @@ export function CopilotView({ status, diagnosis, onNavigate }: CopilotViewProps)
           <div className="flex items-center gap-2 flex-wrap">
             <h2 className="text-xl font-bold text-slate-100 flex items-center gap-2 font-mono">
               <Sparkles className="w-5 h-5 text-tl-violet animate-pulse" />
-              TraceRoute Copilot
+              TraceRoot Copilot
             </h2>
             <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-gradient-to-r from-tl-violet/30 to-tl-cyan/30 border border-tl-violet/50 text-white font-bold flex items-center gap-1">
               <Zap className="w-3 h-3 text-tl-cyan" />
@@ -502,7 +502,7 @@ export function CopilotView({ status, diagnosis, onNavigate }: CopilotViewProps)
                 <div className="flex items-center justify-between gap-4 text-[10px] font-mono text-slate-400 border-b border-tl-border/50 pb-1.5">
                   <div className="flex items-center gap-2">
                     <span className="font-bold uppercase tracking-wider text-slate-300">
-                      {m.sender === "user" ? "You (On-Call SRE)" : "TraceRoute Copilot"}
+                      {m.sender === "user" ? "You (On-Call SRE)" : "TraceRoot Copilot"}
                     </span>
                     {m.modelSource && (
                       <span className="px-1.5 py-0.2 rounded bg-tl-elevated text-tl-cyan border border-tl-border text-[9px] font-mono">
@@ -665,7 +665,7 @@ export function CopilotView({ status, diagnosis, onNavigate }: CopilotViewProps)
 
             <p className="text-xs text-slate-300 leading-relaxed font-sans">
               Enter your <strong>Google Gemini API Key</strong> from Google AI Studio to unlock direct live streaming intelligence.
-              If omitted, TraceRoute operates using the built-in intelligent Gemini SRE reasoning engine with zero latency.
+              If omitted, TraceRoot operates using the built-in intelligent Gemini SRE reasoning engine with zero latency.
             </p>
 
             <div className="space-y-1.5">

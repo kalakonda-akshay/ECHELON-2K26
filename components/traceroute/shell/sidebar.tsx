@@ -137,7 +137,7 @@ export function Sidebar({
             <div>
               <div className="flex items-center gap-1.5">
                 <span className="font-bold text-sm tracking-wider text-slate-100 uppercase">
-                  TraceRoute
+                  TraceRoot
                 </span>
                 <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-sky-950 text-sky-400 border border-sky-800/60 font-semibold">
                   AI
@@ -242,7 +242,7 @@ export function Sidebar({
             {[
               { id: "root_cause", label: "Root Cause & Score", icon: Target, badge: isIncidentActive ? "RCA" : null, badgeColor: "bg-[#8B5CF6]/20 text-[#8B5CF6] border-[#8B5CF6]/40" },
               { id: "why_now", label: "Why Now? / Changed", icon: Clock, badge: isIncidentActive ? "Trigger" : null, badgeColor: "bg-[#22D3EE]/20 text-[#22D3EE] border-[#22D3EE]/40" },
-              { id: "copilot", label: "TraceRoute Copilot", icon: Bot, badge: "AI SRE", badgeColor: "bg-[#8B5CF6]/20 text-[#8B5CF6] border-[#8B5CF6]/40" },
+              { id: "copilot", label: "TraceRoot Copilot", icon: Bot, badge: "AI SRE", badgeColor: "bg-[#8B5CF6]/20 text-[#8B5CF6] border-[#8B5CF6]/40" },
               { id: "adaptive", label: "Adaptive Evidence", icon: BrainCircuit, badge: isIncidentActive ? "Bayesian" : null, badgeColor: "bg-[#8B5CF6]/20 text-[#8B5CF6] border-[#8B5CF6]/40" },
               { id: "causal_graph", label: "Causal Graph", icon: GitFork, badge: isIncidentActive ? "DAG" : null },
               { id: "blast_radius", label: "Blast Radius", icon: Radio, badge: status && status.unhealthy_services_count > 0 ? `${status.unhealthy_services_count} At Risk` : null, badgeColor: "bg-[#F43F5E]/20 text-[#F43F5E] border-[#F43F5E]/40" },

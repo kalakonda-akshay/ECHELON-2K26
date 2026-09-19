@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Deployment, SystemStatus, Diagnosis } from "../types";
-import { TraceRouteAPI } from "../api";
+import { TraceRootAPI } from "../api";
 import {
   GitCommit,
   Clock,
@@ -32,7 +32,7 @@ export function DeploymentsView({
   useEffect(() => {
     async function load() {
       try {
-        const deps = await TraceRouteAPI.getDeployments();
+        const deps = await TraceRootAPI.getDeployments();
         setDeployments(deps);
         if (deps.length > 0) setSelectedDep(deps[0]);
       } catch (err) {

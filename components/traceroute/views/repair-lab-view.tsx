@@ -40,7 +40,7 @@ import {
   MakeItRunStep,
   TraceToCodeResult
 } from "../types";
-import { TraceRouteAPI } from "../api";
+import { TraceRootAPI } from "../api";
 
 interface RepairLabViewProps {
   projectId?: string;
@@ -85,7 +85,7 @@ export function RepairLabView({
   async function loadReport() {
     setIsLoading(true);
     try {
-      const data = await TraceRouteAPI.getRepairIssues(projectId);
+      const data = await TraceRootAPI.getRepairIssues(projectId);
       setReport(data);
     } catch (err) {
       console.error("Failed to load repair issues:", err);
@@ -96,7 +96,7 @@ export function RepairLabView({
 
   async function checkRepairedStatus() {
     try {
-      const status = await TraceRouteAPI.getRepairedStatus(projectId);
+      const status = await TraceRootAPI.getRepairedStatus(projectId);
       if (status) {
         setRepairedStatus(status);
       }
@@ -105,7 +105,7 @@ export function RepairLabView({
 
   async function loadTraceToCode(incidentId: string) {
     try {
-      const res = await TraceRouteAPI.traceIncidentToCode(projectId, incidentId);
+      const res = await TraceRootAPI.traceIncidentToCode(projectId, incidentId);
       setTraceToCode(res);
     } catch (err) {
       console.error("Failed to trace incident to code:", err);
@@ -116,7 +116,7 @@ export function RepairLabView({
     setIsApplyingPatch(true);
     try {
       const patch = isEditingCustomPatch ? customPatchText : undefined;
-      await TraceRouteAPI.applyRepairPatch(projectId, issue.id, patch);
+      await TraceRootAPI.applyRepairPatch(projectId, issue.id, patch);
       await loadReport();
       await checkRepairedStatus();
       setIsFixModalOpen(false);
@@ -131,7 +131,7 @@ export function RepairLabView({
 
   async function handleRollbackFix(issueId: string) {
     try {
-      await TraceRouteAPI.rollbackRepairPatch(projectId, issueId);
+      await TraceRootAPI.rollbackRepairPatch(projectId, issueId);
       await loadReport();
       await checkRepairedStatus();
     } catch (err) {
@@ -142,7 +142,7 @@ export function RepairLabView({
   async function handleMakeItWork() {
     setIsMakeItWorkActive(true);
     try {
-      const result = await TraceRouteAPI.makeItWork(projectId);
+      const result = await TraceRootAPI.makeItWork(projectId);
       setMakeItWorkResult(result);
       if (result.state) {
         setReport(result.state);
@@ -158,7 +158,7 @@ export function RepairLabView({
   function handleDownloadRepaired(allowPartial: boolean = false) {
     setIsExporting(true);
     try {
-      const url = TraceRouteAPI.getRepairedZipDownloadUrl(projectId, allowPartial);
+      const url = TraceRootAPI.getRepairedZipDownloadUrl(projectId, allowPartial);
       window.location.href = url;
     } catch (err) {
       console.error("Download failed:", err);
@@ -803,7 +803,7 @@ export function RepairLabView({
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div className="flex items-center gap-2">
                 <FileText className="w-5 h-5 text-indigo-400" />
-                <h3 className="text-sm font-bold text-white font-mono">TRACEROUTE_REPAIR_REPORT.md</h3>
+                <h3 className="text-sm font-bold text-white font-mono">TraceRoot_REPAIR_REPORT.md</h3>
               </div>
               <button onClick={() => setIsReportModalOpen(false)} className="p-1 rounded-lg hover:bg-slate-800 text-slate-400">
                 <X className="w-5 h-5" />
@@ -811,7 +811,7 @@ export function RepairLabView({
             </div>
 
             <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 text-xs font-mono text-slate-200 whitespace-pre-wrap leading-relaxed">
-{`# TraceRoute AI Repair Report
+{`# TraceRoot AI Repair Report
 
 Project:
 ${projectName}
@@ -907,7 +907,7 @@ The original project was not modified.`}
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div className="flex items-center gap-2">
                 <Radio className="w-5 h-5 text-sky-400" />
-                <h3 className="text-sm font-bold text-white font-mono">Connect Repaired Project to TraceRoute AI</h3>
+                <h3 className="text-sm font-bold text-white font-mono">Connect Repaired Project to TraceRoot AI</h3>
               </div>
               <button onClick={() => setIsConnectModalOpen(false)} className="p-1 rounded-lg hover:bg-slate-800 text-slate-400">
                 <X className="w-5 h-5" />
@@ -952,7 +952,7 @@ The original project was not modified.`}
                   <span className="font-bold text-sky-300">4. Live Telemetry Reception</span>
                   <span className="text-[10px] px-2 py-0.5 rounded bg-amber-950 text-amber-400 border border-amber-800">AWAITING SIGNAL</span>
                 </div>
-                <p className="text-slate-400 text-[11px]">TraceRoute will only transition to <strong>LIVE TELEMETRY</strong> once authentic runtime heartbeats are ingested at <code className="text-white">/api/telemetry/ingest</code>.</p>
+                <p className="text-slate-400 text-[11px]">TraceRoot will only transition to <strong>LIVE TELEMETRY</strong> once authentic runtime heartbeats are ingested at <code className="text-white">/api/telemetry/ingest</code>.</p>
               </div>
             </div>
 

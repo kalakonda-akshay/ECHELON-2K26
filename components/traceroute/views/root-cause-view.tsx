@@ -160,7 +160,7 @@ export function RootCauseView({ diagnosis, onNavigate }: RootCauseViewProps) {
           </h3>
         </div>
         <p className="text-xs text-slate-400 mb-4">
-          TraceRoute traced the cascade path from deepest initiating root up through the upstream dependency tree to public ingress:
+          TraceRoot traced the cascade path from deepest initiating root up through the upstream dependency tree to public ingress:
         </p>
 
         <div className="flex items-center gap-2 flex-wrap text-xs">

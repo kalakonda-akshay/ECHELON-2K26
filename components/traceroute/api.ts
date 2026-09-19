@@ -52,7 +52,7 @@ async function fetchJson<T>(url: string, options?: RequestInit): Promise<T> {
   return res.json();
 }
 
-export const TraceRouteAPI = {
+export const TraceRootAPI = {
   async getStatus(): Promise<SystemStatus> {
     return fetchJson<SystemStatus>(`${API_BASE}/status`);
   },
@@ -212,7 +212,7 @@ export const TraceRouteAPI = {
     }
     if (typeof window !== "undefined") {
       try {
-        const local = JSON.parse(localStorage.getItem("traceroute_uploaded_projects") || "[]");
+        const local = JSON.parse(localStorage.getItem("TraceRoot_uploaded_projects") || "[]");
         const localSummaries: ProjectSummary[] = local.map((p: any) => ({
           id: p.id,
           name: p.name,
@@ -240,7 +240,7 @@ export const TraceRouteAPI = {
       return await fetchJson<ProjectDetails>(`${API_BASE}/projects/${projectId}`);
     } catch (e) {
       if (typeof window !== "undefined") {
-        const local = JSON.parse(localStorage.getItem("traceroute_uploaded_projects") || "[]");
+        const local = JSON.parse(localStorage.getItem("TraceRoot_uploaded_projects") || "[]");
         const found = local.find((p: any) => p.id === projectId);
         if (found) return found;
       }
@@ -260,9 +260,9 @@ export const TraceRouteAPI = {
         const result = await res.json();
         if (typeof window !== "undefined") {
           try {
-            const stored = JSON.parse(localStorage.getItem("traceroute_uploaded_projects") || "[]");
+            const stored = JSON.parse(localStorage.getItem("TraceRoot_uploaded_projects") || "[]");
             stored.unshift(result);
-            localStorage.setItem("traceroute_uploaded_projects", JSON.stringify(stored.slice(0, 10)));
+            localStorage.setItem("TraceRoot_uploaded_projects", JSON.stringify(stored.slice(0, 10)));
           } catch (e) {}
         }
         return result;
@@ -353,7 +353,7 @@ export const TraceRouteAPI = {
             { item: "Microservice Boundaries Discovered", status: "PASSED", score: 20, details: "Cataloged distributed services." },
             { item: "API Routes & Endpoints Mapped", status: "PASSED", score: 20, details: `${base.total_routes} routes mapped.` },
             { item: "Container Topology Defined", status: "PASSED", score: 20, details: "Compose manifests cataloged." },
-            { item: "Distributed Tracing Configured", status: "ACTION_REQUIRED", score: 0, details: "TraceRoute OpenTelemetry SDK required." },
+            { item: "Distributed Tracing Configured", status: "ACTION_REQUIRED", score: 0, details: "TraceRoot OpenTelemetry SDK required." },
             { item: "Metrics Exporter Active", status: "ACTION_REQUIRED", score: 0, details: "Prometheus exporter required." },
             { item: "Liveness / Health Probe Endpoint", status: "PASSED", score: 15, details: "/health probe operational." }
           ]
@@ -391,8 +391,8 @@ export const TraceRouteAPI = {
           project_id: base.id!,
           project_name: base.name!,
           steps: [
-            { step_number: 1, title: "Install TraceRoute AI OpenTelemetry", description: "Standardized OpenTelemetry exporters.", command: "pip install opentelemetry-api opentelemetry-sdk" },
-            { step_number: 2, title: "Initialize TraceRoute Provider", description: "Hook into FastAPI/Flask/Express.", command: "python -m traceroute_instrumentation" }
+            { step_number: 1, title: "Install TraceRoot AI OpenTelemetry", description: "Standardized OpenTelemetry exporters.", command: "pip install opentelemetry-api opentelemetry-sdk" },
+            { step_number: 2, title: "Initialize TraceRoot Provider", description: "Hook into FastAPI/Flask/Express.", command: "python -m TraceRoot_instrumentation" }
           ],
           snippets: [],
           collector_endpoint: typeof window !== "undefined" ? `${window.location.origin}/api/telemetry/ingest` : "http://127.0.0.1:8000/api/telemetry/ingest",
@@ -802,4 +802,4 @@ export const TraceRouteAPI = {
 };
 
 // Backward compatibility alias
-export const TraceLensAPI = TraceRouteAPI;
+export const TraceLensAPI = TraceRootAPI;

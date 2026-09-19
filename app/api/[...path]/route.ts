@@ -27,7 +27,7 @@ import {
   handleNativeMakeItWork,
   getNativeRepairedZip,
   generateNativeCopilotResponse
-} from "@/lib/traceroute-native-engine";
+} from "@/lib/TraceRoot-native-engine";
 
 // Upstream FastAPI backend URL (if running locally or hosted on Railway/Render)
 const BACKEND_URL = process.env.BACKEND_URL || "http://127.0.0.1:8000";
@@ -94,7 +94,7 @@ export async function GET(req: NextRequest, { params }: { params: { path: string
   switch (subpath) {
     case "health":
       return NextResponse.json({
-        service: "TraceRoute AI API",
+        service: "TraceRoot AI API",
         tagline: "Detect. Trace. Explain. Recover. Verify.",
         status: "ONLINE",
         mode: "Native Cloud Engine",
@@ -318,7 +318,7 @@ export async function POST(req: NextRequest, { params }: { params: { path: strin
     case "copilot/ask":
     case "copilot/query": {
       const text = await generateNativeCopilotResponse(body.question || "", body.api_key, body.messages);
-      return NextResponse.json({ answer: text, question: body.question, confidence: 0.95, model_source: "TraceRoute Gemini SRE Engine" });
+      return NextResponse.json({ answer: text, question: body.question, confidence: 0.95, model_source: "TraceRoot Gemini SRE Engine" });
     }
 
     case "copilot/chat/stream": {

@@ -437,7 +437,7 @@ export interface ReadinessItem {
 
 export interface ObservabilityReadiness {
   readiness_percentage: number;
-  status_label: "READY FOR TRACEROUTE" | "INTEGRATION REQUIRED" | "STATIC ANALYSIS ONLY" | "PRODUCTION READY" | "EARLY ADOPTION";
+  status_label: "READY FOR TraceRoot" | "INTEGRATION REQUIRED" | "STATIC ANALYSIS ONLY" | "PRODUCTION READY" | "EARLY ADOPTION";
   missing_count: number;
   checklist: ReadinessItem[];
 }

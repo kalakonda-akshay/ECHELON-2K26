@@ -8,7 +8,7 @@ import {
   Diagnosis,
   VerificationResult
 } from "../types";
-import { TraceRouteAPI } from "../api";
+import { TraceRootAPI } from "../api";
 import {
   Sliders,
   Play,
@@ -57,7 +57,7 @@ export function SandboxView({
   useEffect(() => {
     async function loadOptions() {
       try {
-        const opts = await TraceRouteAPI.getRecoveryOptions();
+        const opts = await TraceRootAPI.getRecoveryOptions();
         setOptions(opts);
         if (opts.length > 0) {
           const rec = opts.find((o) => o.is_recommended) || opts[0];
@@ -74,7 +74,7 @@ export function SandboxView({
     setSelectedActionId(actionId);
     setIsSimulating(true);
     try {
-      const res = await TraceRouteAPI.simulateRecovery(actionId, scenario || undefined);
+      const res = await TraceRootAPI.simulateRecovery(actionId, scenario || undefined);
       setSimulation(res);
     } catch (err) {
       console.error("Failed to run sandbox simulation:", err);
@@ -90,7 +90,7 @@ export function SandboxView({
 
     try {
       setExecutionPhase("Phase 1/4: Issuing control-plane remediation command to cluster...");
-      await TraceRouteAPI.approveRecovery(selectedActionId);
+      await TraceRootAPI.approveRecovery(selectedActionId);
 
       await new Promise((r) => setTimeout(r, 1200));
       setExecutionPhase("Phase 2/4: Mutating live microservice simulator state...");
@@ -101,7 +101,7 @@ export function SandboxView({
       await new Promise((r) => setTimeout(r, 1200));
       setExecutionPhase("Phase 4/4: Evaluating 5 automated verification gates against SLA baseline...");
 
-      const ver = await TraceRouteAPI.verifyRecovery();
+      const ver = await TraceRootAPI.verifyRecovery();
       setVerificationResult(ver);
       onRecoveryComplete();
     } catch (err) {

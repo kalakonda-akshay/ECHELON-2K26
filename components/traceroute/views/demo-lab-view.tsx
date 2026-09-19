@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { TraceRouteAPI } from "../api";
+import { TraceRootAPI } from "../api";
 import {
   Flame,
   Database,
@@ -45,7 +45,7 @@ export function DemoLabView({ onScenarioInjected, onReset, onNavigate }: DemoLab
       tab: "overview",
       duration: 5,
       action: async () => {
-        await TraceRouteAPI.resetDemo();
+        await TraceRootAPI.resetDemo();
       }
     },
     {
@@ -55,7 +55,7 @@ export function DemoLabView({ onScenarioInjected, onReset, onNavigate }: DemoLab
       tab: "overview",
       duration: 6,
       action: async () => {
-        await TraceRouteAPI.injectScenario("DATABASE_FAILURE");
+        await TraceRootAPI.injectScenario("DATABASE_FAILURE");
       }
     },
     {
@@ -69,7 +69,7 @@ export function DemoLabView({ onScenarioInjected, onReset, onNavigate }: DemoLab
     {
       id: "step-4",
       title: "4. Adaptive Investigation (Uncertainty)",
-      desc: "TraceRoute maintains competing hypotheses: Database 52% vs Payment 43% (EVIDENCE INSUFFICIENT).",
+      desc: "TraceRoot maintains competing hypotheses: Database 52% vs Payment 43% (EVIDENCE INSUFFICIENT).",
       tab: "adaptive",
       duration: 6,
       action: async () => {}
@@ -81,7 +81,7 @@ export function DemoLabView({ onScenarioInjected, onReset, onNavigate }: DemoLab
       tab: "adaptive",
       duration: 6,
       action: async () => {
-        await TraceRouteAPI.acquireEvidence("DATABASE_FAILURE");
+        await TraceRootAPI.acquireEvidence("DATABASE_FAILURE");
       }
     },
     {
@@ -107,7 +107,7 @@ export function DemoLabView({ onScenarioInjected, onReset, onNavigate }: DemoLab
       tab: "sandbox",
       duration: 6,
       action: async () => {
-        await TraceRouteAPI.simulateRecovery("act-db-reset", "DATABASE_FAILURE");
+        await TraceRootAPI.simulateRecovery("act-db-reset", "DATABASE_FAILURE");
       }
     },
     {
@@ -117,7 +117,7 @@ export function DemoLabView({ onScenarioInjected, onReset, onNavigate }: DemoLab
       tab: "sandbox",
       duration: 6,
       action: async () => {
-        await TraceRouteAPI.approveRecovery("act-db-reset");
+        await TraceRootAPI.approveRecovery("act-db-reset");
       }
     },
     {
@@ -127,7 +127,7 @@ export function DemoLabView({ onScenarioInjected, onReset, onNavigate }: DemoLab
       tab: "sandbox",
       duration: 6,
       action: async () => {
-        await TraceRouteAPI.verifyRecovery();
+        await TraceRootAPI.verifyRecovery();
       }
     }
   ];
@@ -178,7 +178,7 @@ export function DemoLabView({ onScenarioInjected, onReset, onNavigate }: DemoLab
   async function handleInject(scenario: string, name: string) {
     setLoadingScenario(scenario);
     try {
-      await TraceRouteAPI.injectScenario(scenario);
+      await TraceRootAPI.injectScenario(scenario);
       setActiveMessage(`Successfully injected: ${name}. Watch the cascade detection and investigation progress!`);
       onScenarioInjected();
     } catch (err: any) {

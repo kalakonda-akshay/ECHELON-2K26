@@ -7,7 +7,7 @@ import {
   ChangeAnalysisResult,
   SystemStatus
 } from "../types";
-import { TraceRouteAPI } from "../api";
+import { TraceRootAPI } from "../api";
 import {
   Clock,
   GitCommit,
@@ -44,8 +44,8 @@ export function WhyNowView({ status, onNavigate }: WhyNowViewProps) {
   const fetchData = async () => {
     try {
       const [wn, wc] = await Promise.all([
-        TraceRouteAPI.getWhyNow(),
-        TraceRouteAPI.getWhatChanged()
+        TraceRootAPI.getWhyNow(),
+        TraceRootAPI.getWhatChanged()
       ]);
       setWhyNow(wn);
       setWhatChanged(wc);
@@ -65,7 +65,7 @@ export function WhyNowView({ status, onNavigate }: WhyNowViewProps) {
   const handleEvaluateRisk = async () => {
     setEvaluatingRisk(true);
     try {
-      const res = await TraceRouteAPI.analyzeChange(testService, testVersion, testChangeType, "Pre-deployment risk assessment");
+      const res = await TraceRootAPI.analyzeChange(testService, testVersion, testChangeType, "Pre-deployment risk assessment");
       setChangeRisk(res);
     } catch (e) {
       console.error("Failed to analyze change risk", e);
@@ -132,7 +132,7 @@ export function WhyNowView({ status, onNavigate }: WhyNowViewProps) {
               {whyNow?.primary_trigger || "System running nominal baseline; no trigger event active."}
             </div>
             <p className="text-xs text-slate-400 mt-1">
-              Unlike a simple root cause label, TraceRoute identifies the dynamic convergence of multiple environmental factors that precipitated the failure at this specific timestamp.
+              Unlike a simple root cause label, TraceRoot identifies the dynamic convergence of multiple environmental factors that precipitated the failure at this specific timestamp.
             </p>
           </div>
 
@@ -212,7 +212,7 @@ export function WhyNowView({ status, onNavigate }: WhyNowViewProps) {
             <div className="p-3 rounded-lg bg-tl-elevated border border-tl-border text-[11px] text-slate-400 space-y-1">
               <div className="font-semibold text-slate-200">Continuous Baseline Comparison:</div>
               <p>
-                TraceRoute continuously compares live telemetry against a rolling 30-minute statistical profile. Any metric deviating beyond 3σ is flagged as an active divergence.
+                TraceRoot continuously compares live telemetry against a rolling 30-minute statistical profile. Any metric deviating beyond 3σ is flagged as an active divergence.
               </p>
             </div>
           </div>
@@ -361,7 +361,7 @@ export function WhyNowView({ status, onNavigate }: WhyNowViewProps) {
         </div>
 
         <p className="text-xs text-slate-400">
-          Simulate prospective code, config, or schema changes before pushing to staging or production. TraceRoute evaluates downstream topology depth and criticality to estimate blast risk.
+          Simulate prospective code, config, or schema changes before pushing to staging or production. TraceRoot evaluates downstream topology depth and criticality to estimate blast risk.
         </p>
 
         <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">

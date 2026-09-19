@@ -18,8 +18,8 @@ import {
   ChevronRight,
   Info
 } from "lucide-react";
-import { TraceRouteAPI } from "@/components/traceroute/api";
-import { ProjectDetails } from "@/components/traceroute/types";
+import { TraceRootAPI } from "@/components/TraceRoot/api";
+import { ProjectDetails } from "@/components/TraceRoot/types";
 
 interface ConnectProjectViewProps {
   onProjectSelected: (project: ProjectDetails) => void;
@@ -78,7 +78,7 @@ export function ConnectProjectView({
     setCurrentStageIndex(0);
 
     try {
-      const result = await TraceRouteAPI.uploadProjectZip(file);
+      const result = await TraceRootAPI.uploadProjectZip(file);
       setIsUploading(false);
       onProjectSelected(result);
     } catch (err: any) {
@@ -100,7 +100,7 @@ export function ConnectProjectView({
     setCurrentStageIndex(0);
     setUploadError(null);
     try {
-      const proj = await TraceRouteAPI.loadSampleProject(sampleId);
+      const proj = await TraceRootAPI.loadSampleProject(sampleId);
       setIsUploading(false);
       onProjectSelected(proj);
     } catch (err: any) {
@@ -120,10 +120,10 @@ export function ConnectProjectView({
             <span>PROJECT ONBOARDING & ARCHITECTURE DISCOVERY</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
-            Connect Your Project to TraceRoute AI
+            Connect Your Project to TraceRoot AI
           </h1>
           <p className="text-slate-300 text-sm leading-relaxed">
-            Upload your codebase or select a pre-configured multi-service fixture. TraceRoute performs safe static analysis, maps microservice boundaries, evaluates observability readiness, and delivers a turnkey OpenTelemetry integration plan.
+            Upload your codebase or select a pre-configured multi-service fixture. TraceRoot performs safe static analysis, maps microservice boundaries, evaluates observability readiness, and delivers a turnkey OpenTelemetry integration plan.
           </p>
 
           <div className="flex flex-wrap items-center gap-4 pt-2 text-xs text-slate-400 font-mono">
@@ -281,7 +281,7 @@ export function ConnectProjectView({
               <span>Safe Isolated Workspace Sandbox</span>
             </div>
             <p className="leading-relaxed">
-              TraceRoute analyzes your code strictly via static syntax pattern matching and AST resolution in a temporary sandbox. No arbitrary code, bash scripts, or dependencies are executed. Secrets (.env, private keys) are automatically sanitized and never stored in plain text.
+              TraceRoot analyzes your code strictly via static syntax pattern matching and AST resolution in a temporary sandbox. No arbitrary code, bash scripts, or dependencies are executed. Secrets (.env, private keys) are automatically sanitized and never stored in plain text.
             </p>
           </div>
         </div>

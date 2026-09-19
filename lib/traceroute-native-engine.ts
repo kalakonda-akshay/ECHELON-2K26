@@ -973,7 +973,7 @@ All AST syntax checks and route references verified.
 `;
 
   zip.file("TRACELENS_REPAIR_REPORT.md", report);
-  zip.file("TRACEROUTE_REPAIR_REPORT.md", report);
+  zip.file("TraceRoot_REPAIR_REPORT.md", report);
 
   const repairedZipBuffer = await zip.generateAsync({ type: "arraybuffer" });
   const filename = `${slug}-tracelens-repaired.zip`;
@@ -1066,7 +1066,7 @@ export async function generateNativeCopilotResponse(
       "gemini-pro-latest"
     ];
 
-    const systemPrompt = `You are TraceRoute AI Assistant, an elite Principal Site Reliability Engineer, Distributed Systems Architect, and Full-Stack Polyglot Engineer.
+    const systemPrompt = `You are TraceRoot AI Assistant, an elite Principal Site Reliability Engineer, Distributed Systems Architect, and Full-Stack Polyglot Engineer.
 You answer ANY question thoroughly, accurately, and authoritatively.
 If the question is about general computer science, software engineering, databases, APIs, Docker, Kubernetes, Python, microservices, or SRE, provide deep technical explanations, code snippets, and best practices.
 If the question is about the current cluster state or incidents, ground your answer in:
@@ -1125,7 +1125,7 @@ If the question is about the current cluster state or incidents, ground your ans
 
   // Greetings & Identity
   if (/^(hi|hello|hey|greetings|who are you|what can you do|help)\b/i.test(q)) {
-    return `### Hello! I am TraceRoute Copilot 👋
+    return `### Hello! I am TraceRoot Copilot 👋
 
 I am your **Site Reliability Engineering (SRE) & Distributed Systems Architecture Assistant**. I can answer **any technical question** and assist with:
 
@@ -1141,7 +1141,7 @@ Ask me any technical question, or let me know what you'd like to investigate!`;
 
   // Cluster State & Observability
   if (q.includes("health") || q.includes("status") || q.includes("overview")) {
-    return `### TraceRoute AI Cluster Observability Overview
+    return `### TraceRoot AI Cluster Observability Overview
 
 **Current System Health:** \`${state.system_health}\`
 - **Active Failure Scenario:** \`${state.active_scenario || "None (Nominal Baseline)"}\`
@@ -1308,11 +1308,11 @@ def sleep_with_jitter(attempt: int, base_delay: float = 0.5, max_delay: float = 
 \`\`\``;
   }
 
-  // TraceRoute Project Repair Lab
+  // TraceRoot Project Repair Lab
   if (q.includes("repair") || q.includes("make it work") || q.includes("make it run") || q.includes("project")) {
-    return `### TraceRoute Project Repair Lab: Safe Automated Remediation
+    return `### TraceRoot Project Repair Lab: Safe Automated Remediation
 
-TraceRoute's **Project Repair Lab** ingests real project ZIP archives and executes automated pre-flight remediation with zero risk to production.
+TraceRoot's **Project Repair Lab** ingests real project ZIP archives and executes automated pre-flight remediation with zero risk to production.
 
 #### 1. The 3-Tier Classification:
 - **Level 1 (Safe Auto-Fix)**: Deterministic dependency pins (e.g., adding missing \`requests\` package) and environment fallback defaults. Applied instantly via **"MAKE IT WORK"**.
@@ -1333,7 +1333,7 @@ To test this right now, drag and drop \`broken_payment_api_demo.zip\` into the *
 
   // Root Cause Diagnosis
   if (q.includes("root cause") || q.includes("why") || q.includes("incident") || q.includes("diagnose")) {
-    return `### TraceRoute AI Forensic Root Cause Diagnosis
+    return `### TraceRoot AI Forensic Root Cause Diagnosis
 
 **Active Incident ID:** \`${diag.incident_id}\`
 **Root Cause Node:** \`${diag.root_cause_service}\` (Confidence: **${Math.round(diag.confidence * 100)}%**)
@@ -1350,7 +1350,7 @@ ${diag.evidence.map((e) => `- ${e}`).join("\n")}
 
   // Universal Technical Question Fallback (Answers ANY other question thoroughly)
   const title = question.replace(/[?.,!]+$/, "").trim();
-  return `### TraceRoute AI Engineering Analysis: ${title}
+  return `### TraceRoot AI Engineering Analysis: ${title}
 
 Here is a structured engineering breakdown and SRE architectural perspective on **"${question.trim()}"**:
 

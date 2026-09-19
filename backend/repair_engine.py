@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 
 class RepairEngine:
     """
-    TraceRoute AI / TraceLens Project Repair Lab Engine.
+    TraceRoot AI / TraceLens Project Repair Lab Engine.
     
     Complete End-to-End Reliability Workflow:
       1. Safe extraction into isolated /workspace/{projectId}/
@@ -32,7 +32,7 @@ class RepairEngine:
     def __init__(self, workspaces_dir: Optional[str] = None):
         if not workspaces_dir:
             import tempfile
-            workspaces_dir = os.path.join(tempfile.gettempdir(), "traceroute_workspaces")
+            workspaces_dir = os.path.join(tempfile.gettempdir(), "TraceRoot_workspaces")
         self.workspaces_dir = os.path.abspath(workspaces_dir)
         os.makedirs(self.workspaces_dir, exist_ok=True)
         # In-memory repair state cache: project_id -> state
@@ -949,7 +949,7 @@ The original project was not modified.
         with open(report_file_working, "w", encoding="utf-8") as rf:
             rf.write(report_md)
 
-        with open(os.path.join(working_dir, "TRACEROUTE_REPAIR_REPORT.md"), "w", encoding="utf-8") as rf:
+        with open(os.path.join(working_dir, "TraceRoot_REPAIR_REPORT.md"), "w", encoding="utf-8") as rf:
             rf.write(report_md)
 
         with open(os.path.join(reports_dir, "TRACELENS_REPAIR_REPORT.md"), "w", encoding="utf-8") as rf:

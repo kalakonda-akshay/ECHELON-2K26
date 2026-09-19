@@ -1,4 +1,4 @@
-# TraceRoute AI
+# TraceRoot AI
 
 > **Tagline:** *Detect. Trace. Explain. Recover. Verify.*  
 > **Mission:** Enterprise developer/SRE platform transforming microservice cascading chaos into deterministic root-cause certainty and safe, verified recovery.
@@ -29,10 +29,10 @@ Modern distributed applications consist of interconnected microservices. When an
 
 ## 2. Platform Architecture & Product Structure
 
-TraceRoute AI is organized around **Three Understandable Product Modes**:
+TraceRoot AI is organized around **Three Understandable Product Modes**:
 
 ```
-                                  TRACEROUTE AI PLATFORM
+                                  TraceRoot AI PLATFORM
                                              │
       ┌──────────────────────────────────────┼──────────────────────────────────────┐
       │                                      │                                      │
@@ -40,7 +40,7 @@ TraceRoute AI is organized around **Three Understandable Product Modes**:
 • Command Center                       • Root Cause & Score                   • SafeOps Recovery Sandbox
 • Service Topology                     • Why Now? (Trigger Confluence)        • Digital Twin Simulation
 • System Health & Criticality          • What Changed? (Baseline Deltas)      • Human Approval Gate
-• Early Warning & Telemetry            • TraceRoute Copilot (AI SRE)           • Real Verification Engine
+• Early Warning & Telemetry            • TraceRoot Copilot (AI SRE)           • Real Verification Engine
 • Change Risk & Deployments            • Causal Incident Graph (DAG)          • Incident Memory & Feedback
 • Observability Readiness              • Adaptive Bayesian Evidence           • Incident Post-Mortem Audit
                                        • Blast Radius Assessment              • Incident Replay Studio
@@ -106,7 +106,7 @@ Evaluates static codebases across **5 Capability Pillars** (0-100%):
 5. **Deployments** (60%)
 
 Provides explicit summaries:
-- **What TraceRoute Found**: Discovered services, API endpoints, databases, container configs, and dependency links.
+- **What TraceRoot Found**: Discovered services, API endpoints, databases, container configs, and dependency links.
 - **Observability Gaps**: Uninstrumented services, missing liveness/readiness probes, and unmapped dependencies.
 - **Recommended Next Steps**: Copy-paste OpenTelemetry instrumentation snippets for FastAPI and Express.
 
@@ -135,8 +135,8 @@ No arbitrary percentages are hallucinated by LLMs.
 Maps causal event progression over time rather than static architecture:
 `DB connection pool saturation` $\rightarrow$ `Query latency increases` $\rightarrow$ `Payment thread starvation` $\rightarrow$ `Payment timeout` $\rightarrow$ `Order retry timeout` $\rightarrow$ `Gateway 502`. Every causal node links directly to raw telemetry citations.
 
-### I. TraceRoute Copilot (AI SRE Assistant)
-Incident-aware conversational assistant grounded strictly in structured TraceRoute telemetry, causal graphs, blast radius, and memory. Answers questions such as *"Why is checkout failing?"*, *"What changed before the incident?"*, *"Show strongest evidence"*, and *"What are our recovery options?"* with zero hallucinations, deterministic citations, and one-click jump links.
+### I. TraceRoot Copilot (AI SRE Assistant)
+Incident-aware conversational assistant grounded strictly in structured TraceRoot telemetry, causal graphs, blast radius, and memory. Answers questions such as *"Why is checkout failing?"*, *"What changed before the incident?"*, *"Show strongest evidence"*, and *"What are our recovery options?"* with zero hallucinations, deterministic citations, and one-click jump links.
 
 ### J. SafeOps Recovery Sandbox & Digital Twin
 - **Simulation Before Remediation**: Evaluates candidate recovery playbooks (e.g. Pool Reset, Pod Restart, Git Rollback) in an isolated digital twin state without mutating live production.
@@ -165,7 +165,7 @@ Visually replays resolved incidents chronologically with interactive controls (*
 
 ## 7. Automated Test Suites
 
-TraceRoute includes comprehensive automated test coverage:
+TraceRoot includes comprehensive automated test coverage:
 
 ```bash
 # 1. Test new advanced features (Criticality, Why Now, What Changed, Copilot, Change Risk)
@@ -185,6 +185,6 @@ npx tsc --noEmit
 
 ## 8. Limitations & Future Production Integration
 
-- **Simulator vs. Physical K8s**: The built-in Demo environment runs on a high-fidelity in-memory state machine. In production environments, TraceRoute connects to live OpenTelemetry collectors via OTLP (gRPC/HTTP) and Kubernetes API webhooks.
+- **Simulator vs. Physical K8s**: The built-in Demo environment runs on a high-fidelity in-memory state machine. In production environments, TraceRoot connects to live OpenTelemetry collectors via OTLP (gRPC/HTTP) and Kubernetes API webhooks.
 - **Automated Remediation**: In the current version, remediation execution is safely simulated or applied via container lifecycle commands; in enterprise deployments, SafeOps dispatches via Argo Rollouts or Kubernetes admission controllers with canary validation.
 - **Language Support**: Static project discovery currently supports Python (FastAPI/Flask/Django) and Node.js (Express/Nest/Next.js). Support for Go and Java Spring Boot is planned.
