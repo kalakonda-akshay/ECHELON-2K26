@@ -811,17 +811,9 @@ def download_repaired_project(project_id: str, allow_partial: bool = False):
             repair_engine.analyze_project_issues(project_id, proj_dir, proj_name, orig_filename)
             state = repair_engine._project_repair_states.get(project_id)
 
-        if not state.get("is_repaired", False):
-            if allow_partial:
-                artifact_path, zip_filename = repair_engine.get_repaired_zip_artifact(project_id, allow_partial=True)
-                if not artifact_path or not os.path.exists(artifact_path):
-                    artifact_path, zip_filename = repair_engine.generate_repaired_zip(project_id, is_partial=True)
-            else:
-                raise HTTPException(status_code=400, detail="Complete validation before export.")
-        else:
-            artifact_path, zip_filename = repair_engine.get_repaired_zip_artifact(project_id, allow_partial=False)
-            if not artifact_path or not os.path.exists(artifact_path):
-                artifact_path, zip_filename = repair_engine.generate_repaired_zip(project_id, is_partial=False)
+        artifact_path, zip_filename = repair_engine.get_repaired_zip_artifact(project_id, allow_partial=True)
+        if not artifact_path or not os.path.exists(artifact_path):
+            artifact_path, zip_filename = repair_engine.generate_repaired_zip(project_id, is_partial=not state.get("is_repaired", False))
 
         with open(artifact_path, "rb") as f:
             content = f.read()
@@ -831,7 +823,8 @@ def download_repaired_project(project_id: str, allow_partial: bool = False):
             media_type="application/zip",
             headers={
                 "Content-Disposition": f'attachment; filename="{zip_filename}"',
-                "Content-Length": str(len(content))
+                "Content-Length": str(len(content)),
+                "Access-Control-Expose-Headers": "Content-Disposition"
             }
         )
     except HTTPException:

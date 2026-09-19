@@ -41,9 +41,10 @@ async function tryProxyToBackend(
     let targetSubpath = subpath;
     if (subpath === "copilot/ask") targetSubpath = "copilot/query";
 
-    const targetUrl = `${BACKEND_URL}/api/${targetSubpath}`;
-    const isHeavy = subpath.includes("upload") || subpath.includes("repair") || subpath.includes("make-it-work") || subpath.includes("copilot");
-    const timeoutMs = isHeavy ? 20000 : 2500;
+    const searchParams = req.nextUrl.search || "";
+    const targetUrl = `${BACKEND_URL}/api/${targetSubpath}${searchParams}`;
+    const isHeavy = subpath.includes("upload") || subpath.includes("repair") || subpath.includes("repaired") || subpath.includes("download") || subpath.includes("make-it-work") || subpath.includes("copilot");
+    const timeoutMs = isHeavy ? 30000 : 2500;
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
@@ -232,15 +233,20 @@ export async function GET(req: NextRequest, { params }: { params: { path: string
           });
         }
 
-        if ((parts[2] === "repaired" || parts[2] === "repair") && parts[3] === "download") {
-          const zipInfo = getNativeRepairedZip(projectId);
+        if ((parts[2] === "repaired" || parts[2] === "repair") && (parts[3] === "download" || parts[3] === "export")) {
+          let zipInfo = getNativeRepairedZip(projectId);
+          if (!zipInfo) {
+            await handleNativeMakeItWork(projectId);
+            zipInfo = getNativeRepairedZip(projectId);
+          }
           if (!zipInfo) {
             return NextResponse.json({ detail: "Complete validation before export." }, { status: 400 });
           }
           return new Response(zipInfo.buffer, {
             headers: {
               "Content-Type": "application/zip",
-              "Content-Disposition": `attachment; filename="${zipInfo.filename}"`
+              "Content-Disposition": `attachment; filename="${zipInfo.filename}"`,
+              "Access-Control-Expose-Headers": "Content-Disposition"
             }
           });
         }

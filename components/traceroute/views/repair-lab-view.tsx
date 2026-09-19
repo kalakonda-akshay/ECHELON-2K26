@@ -155,15 +155,28 @@ export function RepairLabView({
     }
   }
 
-  function handleDownloadRepaired(allowPartial: boolean = false) {
+  async function handleDownloadRepaired(allowPartial: boolean = true) {
     setIsExporting(true);
     try {
-      const url = TraceRootAPI.getRepairedZipDownloadUrl(projectId, allowPartial);
-      window.location.href = url;
+      const url = TraceRootAPI.getRepairedZipDownloadUrl(projectId, true);
+      const res = await fetch(url);
+      if (!res.ok) {
+        throw new Error(`Download failed with status ${res.status}`);
+      }
+      const blob = await res.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      link.download = outputZipFilename || `${projectId}-tracelens-repaired.zip`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(blobUrl);
     } catch (err) {
-      console.error("Download failed:", err);
+      console.warn("Direct blob download failed, falling back to window location:", err);
+      window.location.href = TraceRootAPI.getRepairedZipDownloadUrl(projectId, true);
     } finally {
-      setTimeout(() => setIsExporting(false), 1500);
+      setTimeout(() => setIsExporting(false), 800);
     }
   }
 
@@ -467,11 +480,12 @@ export function RepairLabView({
             {/* 4 Action Buttons */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
               <button
-                onClick={() => handleDownloadRepaired(false)}
-                className="flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold font-mono shadow-lg shadow-emerald-600/30 transition transform hover:-translate-y-0.5"
+                onClick={() => handleDownloadRepaired(true)}
+                disabled={isExporting}
+                className="flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-60 text-white text-xs font-bold font-mono shadow-lg shadow-emerald-600/30 transition transform hover:-translate-y-0.5"
               >
-                <Download className="w-4 h-4" />
-                <span>DOWNLOAD REPAIRED PROJECT</span>
+                <Download className={`w-4 h-4 ${isExporting ? "animate-bounce" : ""}`} />
+                <span>{isExporting ? "PREPARING ZIP..." : "DOWNLOAD REPAIRED PROJECT"}</span>
               </button>
 
               <button
